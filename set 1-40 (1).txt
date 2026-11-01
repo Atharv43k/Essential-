@@ -1,0 +1,2640 @@
+// PDF 1 | Q01 | Library Management System | Problem 1 (Array)
+// Insert at position, delete by ID, search by ID, display.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Book {
+public:
+    int id;
+    char name[30];
+    float extra;
+};
+
+class BookArray {
+public:
+    Book a[MAX];   // array of records
+    int n;        // number of records stored
+
+    BookArray() {
+        n = 0;
+    }
+
+    // returns index of the record with this ID, or -1 if not found
+    int findIndex(int id) {
+        for (int i = 0; i < n; i++) {
+            if (a[i].id == id)
+                return i;
+        }
+        return -1;
+    }
+
+    // a. Insert at a given position
+    void insertAt() {
+        if (n == MAX) {
+            cout << "Array is full.\n";
+            return;
+        }
+        int pos;
+        cout << "Enter position (1 to " << n + 1 << "): ";
+        cin >> pos;
+        if (pos < 1 || pos > n + 1) {
+            cout << "Invalid position.\n";
+            return;
+        }
+        Book r;
+        cout << "Enter Book ID: ";
+        cin >> r.id;
+        cout << "Enter Title (one word): ";
+        cin >> r.name;
+        cout << "Enter Price: ";
+        cin >> r.extra;
+
+        // shift elements to the right to make space
+        for (int i = n; i > pos - 1; i--) {
+            a[i] = a[i - 1];
+        }
+        a[pos - 1] = r;
+        n++;
+        cout << "Record inserted.\n";
+    }
+
+    // b. Delete by ID
+    void deleteById() {
+        int id;
+        cout << "Enter Book ID to delete: ";
+        cin >> id;
+        int i = findIndex(id);
+        if (i == -1) {
+            cout << "Record not found.\n";
+            return;
+        }
+        // shift elements to the left
+        for (int j = i; j < n - 1; j++) {
+            a[j] = a[j + 1];
+        }
+        n--;
+        cout << "Record deleted.\n";
+    }
+
+    // c. Search by ID
+    void search() {
+        int id;
+        cout << "Enter Book ID to search: ";
+        cin >> id;
+        int i = findIndex(id);
+        if (i == -1) {
+            cout << "Record not found.\n";
+            return;
+        }
+        cout << "\nBook ID\tTitle\tPrice\n";
+        cout << "----------------------------------\n";
+        cout << a[i].id << "\t" << a[i].name << "\t" << a[i].extra << "\n";
+    }
+
+    // d. Display all
+    void display() {
+        if (n == 0) {
+            cout << "No records.\n";
+            return;
+        }
+        cout << "\nNo.\tBook ID\tTitle\tPrice\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << a[i].id << "\t" << a[i].name << "\t" << a[i].extra << "\n";
+        }
+    }
+};
+
+int main() {
+    BookArray obj;
+    int choice;
+    do {
+        cout << "\n===== Book Records (Array) =====\n";
+        cout << "1. Insert a new book at a given position\n";
+        cout << "2. Delete a book by Book ID\n";
+        cout << "3. Search a book by Book ID\n";
+        cout << "4. Display all books\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertAt(); break;
+            case 2: obj.deleteById(); break;
+            case 3: obj.search(); break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q05 | Library Management System | Problem 5 (Array vs Linked List)
+// Store in both, show memory representation, count by condition.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+struct Node {
+    int data;
+    Node *next;
+};
+
+class Storage {
+public:
+    int arr[MAX];   // array
+    int n;          // how many values stored
+    Node *head;     // linked list
+
+    Storage() {
+        n = 0;
+        head = NULL;
+    }
+
+    // a. Insert the value in both the array and the linked list
+    void insertValue() {
+        if (n == MAX) {
+            cout << "Storage is full.\n";
+            return;
+        }
+        int v;
+        cout << "Enter number of books issued of member " << n + 1 << ": ";
+        cin >> v;
+
+        arr[n] = v;                       // array
+        n++;
+
+        Node *nd = new Node;              // linked list (add at end)
+        nd->data = v;
+        nd->next = NULL;
+        if (head == NULL) {
+            head = nd;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = nd;
+        }
+        cout << "Stored in both array and linked list.\n";
+    }
+
+    // b. Display memory representation
+    void showMemory() {
+        if (n == 0) {
+            cout << "Nothing stored yet.\n";
+            return;
+        }
+        cout << "\nARRAY (addresses are continuous)\n";
+        cout << "Index\tValue\tAddress\n";
+        cout << "-----------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i << "\t" << arr[i] << "\t" << &arr[i] << "\n";
+        }
+
+        cout << "\nLINKED LIST (addresses are scattered)\n";
+        cout << "Node\tData\tAddress\t\tNext\n";
+        cout << "---------------------------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->data << "\t" << p << "\t" << p->next << "\n";
+            p = p->next;
+            k++;
+        }
+        cout << "(Next = 0 means NULL, the end of the list)\n";
+    }
+
+    // c. Count values above the limit
+    void countAbove() {
+        int countArray = 0, countList = 0;
+        for (int i = 0; i < n; i++) {
+            if (arr[i] > 5)
+                countArray++;
+        }
+        Node *p = head;
+        while (p != NULL) {
+            if (p->data > 5)
+                countList++;
+            p = p->next;
+        }
+        cout << "\nStructure\tCount (> 5)\n";
+        cout << "-----------------------------\n";
+        cout << "Array\t\t" << countArray << "\n";
+        cout << "Linked List\t" << countList << "\n";
+    }
+};
+
+int main() {
+    Storage obj;
+    int choice;
+    do {
+        cout << "\n===== Books Issued by Members (Array vs Linked List) =====\n";
+        cout << "1. Insert a value in both array and linked list\n";
+        cout << "2. Display memory representation (index and nodes)\n";
+        cout << "3. Count members who issued more than 5 books\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertValue(); break;
+            case 2: obj.showMemory(); break;
+            case 3: obj.countAbove(); break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 1 | Q03 | Library Management System | Problem 3 (Singly Linked List)
+// Insert at middle, delete by day from the front, count status, display.
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int day;
+    char status;
+    Node *next;
+};
+
+class StatusList {
+public:
+    Node *head;
+
+    StatusList() {
+        head = NULL;
+    }
+
+    // reads a valid status letter
+    char readStatus() {
+        char s;
+        cout << "Enter status (R = Returned, N = Not returned): ";
+        cin >> s;
+        return s;
+    }
+
+    // add a node at the end of the list
+    void insertEnd() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+        n->next = NULL;
+        if (head == NULL) {
+            head = n;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the end.\n";
+    }
+
+    // count the nodes whose status matches s
+    int countStatus(char s) {
+        int c = 0;
+        Node *p = head;
+        while (p != NULL) {
+            if (p->status == s)
+                c++;
+            p = p->next;
+        }
+        return c;
+    }
+
+    void display() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nNode\tDay\tStatus\n";
+        cout << "------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->day << "\t" << p->status << "\n";
+            p = p->next;
+            k++;
+        }
+    }
+
+    // a. Insert a status at the middle of the list
+    void insertMiddle() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+
+        // count nodes to find the middle
+        int count = 0;
+        Node *p = head;
+        while (p != NULL) {
+            count++;
+            p = p->next;
+        }
+        int mid = count / 2;   // new node goes after 'mid' nodes
+
+        if (mid == 0) {        // list is empty or has 1 node: insert at front
+            n->next = head;
+            head = n;
+        } else {
+            p = head;
+            for (int i = 1; i < mid; i++)
+                p = p->next;
+            n->next = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the middle.\n";
+    }
+
+    // b. Delete a status by day (searching from the front)
+    void deleteByDay() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        int d;
+        cout << "Enter day to delete: ";
+        cin >> d;
+        Node *p = head;
+        Node *prev = NULL;
+        while (p != NULL && p->day != d) {
+            prev = p;
+            p = p->next;
+        }
+        if (p == NULL) {
+            cout << "Day not found.\n";
+            return;
+        }
+        if (prev == NULL)
+            head = p->next;      // deleting the first node
+        else
+            prev->next = p->next;
+        delete p;
+        cout << "Status deleted.\n";
+    }
+};
+
+int main() {
+    StatusList obj;
+    int choice;
+    do {
+        cout << "\n===== Daily Return Status of Books =====\n";
+        cout << "1. Insert a status at the end (to build the list)\n";
+        cout << "2. Insert a status at the middle of the list\n";
+        cout << "3. Delete a status by day from the front\n";
+        cout << "4. Calculate total number of books not returned\n";
+        cout << "5. Display the complete list\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertEnd(); break;
+            case 2: obj.insertMiddle(); break;
+            case 3: obj.deleteByDay(); break;
+            case 4: cout << "Total books not returned = " << obj.countStatus('N') << "\n"; break;
+            case 5: obj.display(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 1 | Q04 | Library Management System | Problem 4 (Doubly Linked List)
+// Sorted insert, delete by ID, forward and backward traversal.
+
+#include <iostream>
+using namespace std;
+
+struct DNode {
+    int id;
+    char name[30];
+    DNode *prev;
+    DNode *next;
+};
+
+class SortedList {
+public:
+    DNode *head;
+    DNode *tail;
+
+    SortedList() {
+        head = NULL;
+        tail = NULL;
+    }
+
+    // a. Insert so that the list stays sorted by ID
+    void insertSorted() {
+        DNode *n = new DNode;
+        cout << "Enter Member ID: ";
+        cin >> n->id;
+        cout << "Enter Name (one word): ";
+        cin >> n->name;
+        n->prev = NULL;
+        n->next = NULL;
+
+        if (head == NULL) {                    // empty list
+            head = n;
+            tail = n;
+        } else if (n->id < head->id) {         // smaller than the first
+            n->next = head;
+            head->prev = n;
+            head = n;
+        } else {                               // find the place
+            DNode *p = head;
+            while (p->next != NULL && p->next->id < n->id)
+                p = p->next;
+            n->next = p->next;
+            n->prev = p;
+            if (p->next != NULL)
+                p->next->prev = n;
+            else
+                tail = n;                      // inserted at the end
+            p->next = n;
+        }
+        cout << "Inserted in sorted order.\n";
+    }
+
+    // b. Delete by ID
+    void deleteById() {
+        int id;
+        cout << "Enter Member ID to delete: ";
+        cin >> id;
+        DNode *p = head;
+        while (p != NULL && p->id != id)
+            p = p->next;
+        if (p == NULL) {
+            cout << "Not found.\n";
+            return;
+        }
+        if (p->prev != NULL)
+            p->prev->next = p->next;
+        else
+            head = p->next;                    // deleting the first node
+        if (p->next != NULL)
+            p->next->prev = p->prev;
+        else
+            tail = p->prev;                    // deleting the last node
+        delete p;
+        cout << "Deleted.\n";
+    }
+
+    // c. Forward traversal
+    void forward() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nForward:\nMember ID\tName\n";
+        cout << "-------------------------\n";
+        DNode *p = head;
+        while (p != NULL) {
+            cout << p->id << "\t" << p->name << "\n";
+            p = p->next;
+        }
+    }
+
+    // d. Backward traversal
+    void backward() {
+        if (tail == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nBackward:\nMember ID\tName\n";
+        cout << "-------------------------\n";
+        DNode *p = tail;
+        while (p != NULL) {
+            cout << p->id << "\t" << p->name << "\n";
+            p = p->prev;
+        }
+    }
+};
+
+int main() {
+    SortedList obj;
+    int choice;
+    do {
+        cout << "\n===== Library Members (Doubly Linked List) =====\n";
+        cout << "1. Insert a member (list stays sorted)\n";
+        cout << "2. Delete a member by Member ID\n";
+        cout << "3. Traverse forward and display all members\n";
+        cout << "4. Traverse backward and display all members\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertSorted(); break;
+            case 2: obj.deleteById(); break;
+            case 3: obj.forward(); break;
+            case 4: obj.backward(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q05 | Library Management System | Problem 5 (Array vs Linked List)
+// Store in both, show memory representation, count by condition.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+struct Node {
+    int data;
+    Node *next;
+};
+
+class Storage {
+public:
+    int arr[MAX];   // array
+    int n;          // how many values stored
+    Node *head;     // linked list
+
+    Storage() {
+        n = 0;
+        head = NULL;
+    }
+
+    // a. Insert the value in both the array and the linked list
+    void insertValue() {
+        if (n == MAX) {
+            cout << "Storage is full.\n";
+            return;
+        }
+        int v;
+        cout << "Enter number of books issued of member " << n + 1 << ": ";
+        cin >> v;
+
+        arr[n] = v;                       // array
+        n++;
+
+        Node *nd = new Node;              // linked list (add at end)
+        nd->data = v;
+        nd->next = NULL;
+        if (head == NULL) {
+            head = nd;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = nd;
+        }
+        cout << "Stored in both array and linked list.\n";
+    }
+
+    // b. Display memory representation
+    void showMemory() {
+        if (n == 0) {
+            cout << "Nothing stored yet.\n";
+            return;
+        }
+        cout << "\nARRAY (addresses are continuous)\n";
+        cout << "Index\tValue\tAddress\n";
+        cout << "-----------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i << "\t" << arr[i] << "\t" << &arr[i] << "\n";
+        }
+
+        cout << "\nLINKED LIST (addresses are scattered)\n";
+        cout << "Node\tData\tAddress\t\tNext\n";
+        cout << "---------------------------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->data << "\t" << p << "\t" << p->next << "\n";
+            p = p->next;
+            k++;
+        }
+        cout << "(Next = 0 means NULL, the end of the list)\n";
+    }
+
+    // c. Count values above the limit
+    void countAbove() {
+        int countArray = 0, countList = 0;
+        for (int i = 0; i < n; i++) {
+            if (arr[i] > 5)
+                countArray++;
+        }
+        Node *p = head;
+        while (p != NULL) {
+            if (p->data > 5)
+                countList++;
+            p = p->next;
+        }
+        cout << "\nStructure\tCount (> 5)\n";
+        cout << "-----------------------------\n";
+        cout << "Array\t\t" << countArray << "\n";
+        cout << "Linked List\t" << countList << "\n";
+    }
+};
+
+int main() {
+    Storage obj;
+    int choice;
+    do {
+        cout << "\n===== Books Issued by Members (Array vs Linked List) =====\n";
+        cout << "1. Insert a value in both array and linked list\n";
+        cout << "2. Display memory representation (index and nodes)\n";
+        cout << "3. Count members who issued more than 5 books\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertValue(); break;
+            case 2: obj.showMemory(); break;
+            case 3: obj.countAbove(); break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 1 | Q06 | Hospital Management System | Problem 1 (Array)
+// Insert at position, delete by ID, search by ID, display.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Patient {
+public:
+    int id;
+    char name[30];
+    int extra;
+};
+
+class PatientArray {
+public:
+    Patient a[MAX];   // array of records
+    int n;        // number of records stored
+
+    PatientArray() {
+        n = 0;
+    }
+
+    // returns index of the record with this ID, or -1 if not found
+    int findIndex(int id) {
+        for (int i = 0; i < n; i++) {
+            if (a[i].id == id)
+                return i;
+        }
+        return -1;
+    }
+
+    // a. Insert at a given position
+    void insertAt() {
+        if (n == MAX) {
+            cout << "Array is full.\n";
+            return;
+        }
+        int pos;
+        cout << "Enter position (1 to " << n + 1 << "): ";
+        cin >> pos;
+        if (pos < 1 || pos > n + 1) {
+            cout << "Invalid position.\n";
+            return;
+        }
+        Patient r;
+        cout << "Enter Patient ID: ";
+        cin >> r.id;
+        cout << "Enter Name (one word): ";
+        cin >> r.name;
+        cout << "Enter Age: ";
+        cin >> r.extra;
+
+        // shift elements to the right to make space
+        for (int i = n; i > pos - 1; i--) {
+            a[i] = a[i - 1];
+        }
+        a[pos - 1] = r;
+        n++;
+        cout << "Record inserted.\n";
+    }
+
+    // b. Delete by ID
+    void deleteById() {
+        int id;
+        cout << "Enter Patient ID to delete: ";
+        cin >> id;
+        int i = findIndex(id);
+        if (i == -1) {
+            cout << "Record not found.\n";
+            return;
+        }
+        // shift elements to the left
+        for (int j = i; j < n - 1; j++) {
+            a[j] = a[j + 1];
+        }
+        n--;
+        cout << "Record deleted.\n";
+    }
+
+    // c. Search by ID
+    void search() {
+        int id;
+        cout << "Enter Patient ID to search: ";
+        cin >> id;
+        int i = findIndex(id);
+        if (i == -1) {
+            cout << "Record not found.\n";
+            return;
+        }
+        cout << "\nPatient ID\tName\tAge\n";
+        cout << "----------------------------------\n";
+        cout << a[i].id << "\t" << a[i].name << "\t" << a[i].extra << "\n";
+    }
+
+    // d. Display all
+    void display() {
+        if (n == 0) {
+            cout << "No records.\n";
+            return;
+        }
+        cout << "\nNo.\tPatient ID\tName\tAge\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << a[i].id << "\t" << a[i].name << "\t" << a[i].extra << "\n";
+        }
+    }
+};
+
+int main() {
+    PatientArray obj;
+    int choice;
+    do {
+        cout << "\n===== Patient Records (Array) =====\n";
+        cout << "1. Insert a new patient at a given position\n";
+        cout << "2. Delete a patient by Patient ID\n";
+        cout << "3. Search a patient by Patient ID\n";
+        cout << "4. Display all patients\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertAt(); break;
+            case 2: obj.deleteById(); break;
+            case 3: obj.search(); break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q07 | Hospital Management System | Problem 2 (Singly Linked List)
+// Insert at end, update status of a day, count status, display.
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int day;
+    char status;
+    Node *next;
+};
+
+class StatusList {
+public:
+    Node *head;
+
+    StatusList() {
+        head = NULL;
+    }
+
+    // reads a valid status letter
+    char readStatus() {
+        char s;
+        cout << "Enter status (C = Completed, M = Missed): ";
+        cin >> s;
+        return s;
+    }
+
+    // add a node at the end of the list
+    void insertEnd() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+        n->next = NULL;
+        if (head == NULL) {
+            head = n;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the end.\n";
+    }
+
+    // count the nodes whose status matches s
+    int countStatus(char s) {
+        int c = 0;
+        Node *p = head;
+        while (p != NULL) {
+            if (p->status == s)
+                c++;
+            p = p->next;
+        }
+        return c;
+    }
+
+    void display() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nNode\tDay\tStatus\n";
+        cout << "------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->day << "\t" << p->status << "\n";
+            p = p->next;
+            k++;
+        }
+    }
+
+    // b. Update the status of a given day
+    void updateStatus() {
+        int d;
+        cout << "Enter day to update: ";
+        cin >> d;
+        Node *p = head;
+        while (p != NULL && p->day != d)
+            p = p->next;
+        if (p == NULL) {
+            cout << "Day not found.\n";
+            return;
+        }
+        p->status = readStatus();
+        cout << "Status updated.\n";
+    }
+};
+
+int main() {
+    StatusList obj;
+    int choice;
+    do {
+        cout << "\n===== Daily Check-up Status =====\n";
+        cout << "1. Insert a status at the end of the list\n";
+        cout << "2. Update the status of a given day\n";
+        cout << "3. Calculate total number of completed check-ups\n";
+        cout << "4. Display the complete status list\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertEnd(); break;
+            case 2: obj.updateStatus(); break;
+            case 3: cout << "Total completed check-ups = " << obj.countStatus('C') << "\n"; break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q08 | Hospital Management System | Problem 3 (Singly Linked List)
+// Insert at middle, delete by day from the front, count status, display.
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int day;
+    char status;
+    Node *next;
+};
+
+class StatusList {
+public:
+    Node *head;
+
+    StatusList() {
+        head = NULL;
+    }
+
+    // reads a valid status letter
+    char readStatus() {
+        char s;
+        cout << "Enter status (C = Completed, M = Missed): ";
+        cin >> s;
+        return s;
+    }
+
+    // add a node at the end of the list
+    void insertEnd() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+        n->next = NULL;
+        if (head == NULL) {
+            head = n;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the end.\n";
+    }
+
+    // count the nodes whose status matches s
+    int countStatus(char s) {
+        int c = 0;
+        Node *p = head;
+        while (p != NULL) {
+            if (p->status == s)
+                c++;
+            p = p->next;
+        }
+        return c;
+    }
+
+    void display() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nNode\tDay\tStatus\n";
+        cout << "------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->day << "\t" << p->status << "\n";
+            p = p->next;
+            k++;
+        }
+    }
+
+    // a. Insert a status at the middle of the list
+    void insertMiddle() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+
+        // count nodes to find the middle
+        int count = 0;
+        Node *p = head;
+        while (p != NULL) {
+            count++;
+            p = p->next;
+        }
+        int mid = count / 2;   // new node goes after 'mid' nodes
+
+        if (mid == 0) {        // list is empty or has 1 node: insert at front
+            n->next = head;
+            head = n;
+        } else {
+            p = head;
+            for (int i = 1; i < mid; i++)
+                p = p->next;
+            n->next = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the middle.\n";
+    }
+
+    // b. Delete a status by day (searching from the front)
+    void deleteByDay() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        int d;
+        cout << "Enter day to delete: ";
+        cin >> d;
+        Node *p = head;
+        Node *prev = NULL;
+        while (p != NULL && p->day != d) {
+            prev = p;
+            p = p->next;
+        }
+        if (p == NULL) {
+            cout << "Day not found.\n";
+            return;
+        }
+        if (prev == NULL)
+            head = p->next;      // deleting the first node
+        else
+            prev->next = p->next;
+        delete p;
+        cout << "Status deleted.\n";
+    }
+};
+
+int main() {
+    StatusList obj;
+    int choice;
+    do {
+        cout << "\n===== Daily Check-up Status =====\n";
+        cout << "1. Insert a status at the end (to build the list)\n";
+        cout << "2. Insert a status at the middle of the list\n";
+        cout << "3. Delete a status by day from the front\n";
+        cout << "4. Calculate total number of missed check-ups\n";
+        cout << "5. Display the complete list\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertEnd(); break;
+            case 2: obj.insertMiddle(); break;
+            case 3: obj.deleteByDay(); break;
+            case 4: cout << "Total missed check-ups = " << obj.countStatus('M') << "\n"; break;
+            case 5: obj.display(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 1 | Q09 | Hospital Management System | Problem 4 (Doubly Linked List)
+// Sorted insert, delete by ID, forward and backward traversal.
+
+#include <iostream>
+using namespace std;
+
+struct DNode {
+    int id;
+    char name[30];
+    DNode *prev;
+    DNode *next;
+};
+
+class SortedList {
+public:
+    DNode *head;
+    DNode *tail;
+
+    SortedList() {
+        head = NULL;
+        tail = NULL;
+    }
+
+    // a. Insert so that the list stays sorted by ID
+    void insertSorted() {
+        DNode *n = new DNode;
+        cout << "Enter Doctor ID: ";
+        cin >> n->id;
+        cout << "Enter Name (one word): ";
+        cin >> n->name;
+        n->prev = NULL;
+        n->next = NULL;
+
+        if (head == NULL) {                    // empty list
+            head = n;
+            tail = n;
+        } else if (n->id < head->id) {         // smaller than the first
+            n->next = head;
+            head->prev = n;
+            head = n;
+        } else {                               // find the place
+            DNode *p = head;
+            while (p->next != NULL && p->next->id < n->id)
+                p = p->next;
+            n->next = p->next;
+            n->prev = p;
+            if (p->next != NULL)
+                p->next->prev = n;
+            else
+                tail = n;                      // inserted at the end
+            p->next = n;
+        }
+        cout << "Inserted in sorted order.\n";
+    }
+
+    // b. Delete by ID
+    void deleteById() {
+        int id;
+        cout << "Enter Doctor ID to delete: ";
+        cin >> id;
+        DNode *p = head;
+        while (p != NULL && p->id != id)
+            p = p->next;
+        if (p == NULL) {
+            cout << "Not found.\n";
+            return;
+        }
+        if (p->prev != NULL)
+            p->prev->next = p->next;
+        else
+            head = p->next;                    // deleting the first node
+        if (p->next != NULL)
+            p->next->prev = p->prev;
+        else
+            tail = p->prev;                    // deleting the last node
+        delete p;
+        cout << "Deleted.\n";
+    }
+
+    // c. Forward traversal
+    void forward() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nForward:\nDoctor ID\tName\n";
+        cout << "-------------------------\n";
+        DNode *p = head;
+        while (p != NULL) {
+            cout << p->id << "\t" << p->name << "\n";
+            p = p->next;
+        }
+    }
+
+    // d. Backward traversal
+    void backward() {
+        if (tail == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nBackward:\nDoctor ID\tName\n";
+        cout << "-------------------------\n";
+        DNode *p = tail;
+        while (p != NULL) {
+            cout << p->id << "\t" << p->name << "\n";
+            p = p->prev;
+        }
+    }
+};
+
+int main() {
+    SortedList obj;
+    int choice;
+    do {
+        cout << "\n===== Hospital Doctors (Doubly Linked List) =====\n";
+        cout << "1. Insert a doctor (list stays sorted)\n";
+        cout << "2. Delete a doctor by Doctor ID\n";
+        cout << "3. Traverse forward and display all doctors\n";
+        cout << "4. Traverse backward and display all doctors\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertSorted(); break;
+            case 2: obj.deleteById(); break;
+            case 3: obj.forward(); break;
+            case 4: obj.backward(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q10 | Hospital Management System | Problem 5 (Array vs Linked List)
+// Store in both, show memory representation, count by condition.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+struct Node {
+    float data;
+    Node *next;
+};
+
+class Storage {
+public:
+    float arr[MAX];   // array
+    int n;          // how many values stored
+    Node *head;     // linked list
+
+    Storage() {
+        n = 0;
+        head = NULL;
+    }
+
+    // a. Insert the value in both the array and the linked list
+    void insertValue() {
+        if (n == MAX) {
+            cout << "Storage is full.\n";
+            return;
+        }
+        float v;
+        cout << "Enter temperature in F of patient " << n + 1 << ": ";
+        cin >> v;
+
+        arr[n] = v;                       // array
+        n++;
+
+        Node *nd = new Node;              // linked list (add at end)
+        nd->data = v;
+        nd->next = NULL;
+        if (head == NULL) {
+            head = nd;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = nd;
+        }
+        cout << "Stored in both array and linked list.\n";
+    }
+
+    // b. Display memory representation
+    void showMemory() {
+        if (n == 0) {
+            cout << "Nothing stored yet.\n";
+            return;
+        }
+        cout << "\nARRAY (addresses are continuous)\n";
+        cout << "Index\tValue\tAddress\n";
+        cout << "-----------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i << "\t" << arr[i] << "\t" << &arr[i] << "\n";
+        }
+
+        cout << "\nLINKED LIST (addresses are scattered)\n";
+        cout << "Node\tData\tAddress\t\tNext\n";
+        cout << "---------------------------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->data << "\t" << p << "\t" << p->next << "\n";
+            p = p->next;
+            k++;
+        }
+        cout << "(Next = 0 means NULL, the end of the list)\n";
+    }
+
+    // c. Count values above the limit
+    void countAbove() {
+        int countArray = 0, countList = 0;
+        for (int i = 0; i < n; i++) {
+            if (arr[i] > 100)
+                countArray++;
+        }
+        Node *p = head;
+        while (p != NULL) {
+            if (p->data > 100)
+                countList++;
+            p = p->next;
+        }
+        cout << "\nStructure\tCount (> 100)\n";
+        cout << "-----------------------------\n";
+        cout << "Array\t\t" << countArray << "\n";
+        cout << "Linked List\t" << countList << "\n";
+    }
+};
+
+int main() {
+    Storage obj;
+    int choice;
+    do {
+        cout << "\n===== Patient Temperature (Array vs Linked List) =====\n";
+        cout << "1. Insert a value in both array and linked list\n";
+        cout << "2. Display memory representation (index and nodes)\n";
+        cout << "3. Count patients with temperature above 100 F\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertValue(); break;
+            case 2: obj.showMemory(); break;
+            case 3: obj.countAbove(); break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 1 | Q11 | Inventory and Warehouse System | Problem 1 (Array)
+// Insert at position, delete by ID, search by ID, display.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Product {
+public:
+    int id;
+    char name[30];
+    int extra;
+};
+
+class ProductArray {
+public:
+    Product a[MAX];   // array of records
+    int n;        // number of records stored
+
+    ProductArray() {
+        n = 0;
+    }
+
+    // returns index of the record with this ID, or -1 if not found
+    int findIndex(int id) {
+        for (int i = 0; i < n; i++) {
+            if (a[i].id == id)
+                return i;
+        }
+        return -1;
+    }
+
+    // a. Insert at a given position
+    void insertAt() {
+        if (n == MAX) {
+            cout << "Array is full.\n";
+            return;
+        }
+        int pos;
+        cout << "Enter position (1 to " << n + 1 << "): ";
+        cin >> pos;
+        if (pos < 1 || pos > n + 1) {
+            cout << "Invalid position.\n";
+            return;
+        }
+        Product r;
+        cout << "Enter Product ID: ";
+        cin >> r.id;
+        cout << "Enter Name (one word): ";
+        cin >> r.name;
+        cout << "Enter Quantity: ";
+        cin >> r.extra;
+
+        // shift elements to the right to make space
+        for (int i = n; i > pos - 1; i--) {
+            a[i] = a[i - 1];
+        }
+        a[pos - 1] = r;
+        n++;
+        cout << "Record inserted.\n";
+    }
+
+    // b. Delete by ID
+    void deleteById() {
+        int id;
+        cout << "Enter Product ID to delete: ";
+        cin >> id;
+        int i = findIndex(id);
+        if (i == -1) {
+            cout << "Record not found.\n";
+            return;
+        }
+        // shift elements to the left
+        for (int j = i; j < n - 1; j++) {
+            a[j] = a[j + 1];
+        }
+        n--;
+        cout << "Record deleted.\n";
+    }
+
+    // c. Search by ID
+    void search() {
+        int id;
+        cout << "Enter Product ID to search: ";
+        cin >> id;
+        int i = findIndex(id);
+        if (i == -1) {
+            cout << "Record not found.\n";
+            return;
+        }
+        cout << "\nProduct ID\tName\tQuantity\n";
+        cout << "----------------------------------\n";
+        cout << a[i].id << "\t" << a[i].name << "\t" << a[i].extra << "\n";
+    }
+
+    // d. Display all
+    void display() {
+        if (n == 0) {
+            cout << "No records.\n";
+            return;
+        }
+        cout << "\nNo.\tProduct ID\tName\tQuantity\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << a[i].id << "\t" << a[i].name << "\t" << a[i].extra << "\n";
+        }
+    }
+};
+
+int main() {
+    ProductArray obj;
+    int choice;
+    do {
+        cout << "\n===== Product Records (Array) =====\n";
+        cout << "1. Insert a new product at a given position\n";
+        cout << "2. Delete a product by Product ID\n";
+        cout << "3. Search a product by Product ID\n";
+        cout << "4. Display all products\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertAt(); break;
+            case 2: obj.deleteById(); break;
+            case 3: obj.search(); break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q12 | Inventory and Warehouse System | Problem 2 (Singly Linked List)
+// Insert at end, update status of a day, count status, display.
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int day;
+    char status;
+    Node *next;
+};
+
+class StatusList {
+public:
+    Node *head;
+
+    StatusList() {
+        head = NULL;
+    }
+
+    // reads a valid status letter
+    char readStatus() {
+        char s;
+        cout << "Enter status (A = Available, O = Out of stock): ";
+        cin >> s;
+        return s;
+    }
+
+    // add a node at the end of the list
+    void insertEnd() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+        n->next = NULL;
+        if (head == NULL) {
+            head = n;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the end.\n";
+    }
+
+    // count the nodes whose status matches s
+    int countStatus(char s) {
+        int c = 0;
+        Node *p = head;
+        while (p != NULL) {
+            if (p->status == s)
+                c++;
+            p = p->next;
+        }
+        return c;
+    }
+
+    void display() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nNode\tDay\tStatus\n";
+        cout << "------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->day << "\t" << p->status << "\n";
+            p = p->next;
+            k++;
+        }
+    }
+
+    // b. Update the status of a given day
+    void updateStatus() {
+        int d;
+        cout << "Enter day to update: ";
+        cin >> d;
+        Node *p = head;
+        while (p != NULL && p->day != d)
+            p = p->next;
+        if (p == NULL) {
+            cout << "Day not found.\n";
+            return;
+        }
+        p->status = readStatus();
+        cout << "Status updated.\n";
+    }
+};
+
+int main() {
+    StatusList obj;
+    int choice;
+    do {
+        cout << "\n===== Daily Stock Status =====\n";
+        cout << "1. Insert a status at the end of the list\n";
+        cout << "2. Update the status of a given day\n";
+        cout << "3. Calculate total number of days available\n";
+        cout << "4. Display the complete status list\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertEnd(); break;
+            case 2: obj.updateStatus(); break;
+            case 3: cout << "Total days available = " << obj.countStatus('A') << "\n"; break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q13 | Inventory and Warehouse System | Problem 3 (Singly Linked List)
+// Insert at middle, delete by day from the front, count status, display.
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int day;
+    char status;
+    Node *next;
+};
+
+class StatusList {
+public:
+    Node *head;
+
+    StatusList() {
+        head = NULL;
+    }
+
+    // reads a valid status letter
+    char readStatus() {
+        char s;
+        cout << "Enter status (A = Available, O = Out of stock): ";
+        cin >> s;
+        return s;
+    }
+
+    // add a node at the end of the list
+    void insertEnd() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+        n->next = NULL;
+        if (head == NULL) {
+            head = n;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the end.\n";
+    }
+
+    // count the nodes whose status matches s
+    int countStatus(char s) {
+        int c = 0;
+        Node *p = head;
+        while (p != NULL) {
+            if (p->status == s)
+                c++;
+            p = p->next;
+        }
+        return c;
+    }
+
+    void display() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nNode\tDay\tStatus\n";
+        cout << "------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->day << "\t" << p->status << "\n";
+            p = p->next;
+            k++;
+        }
+    }
+
+    // a. Insert a status at the middle of the list
+    void insertMiddle() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+
+        // count nodes to find the middle
+        int count = 0;
+        Node *p = head;
+        while (p != NULL) {
+            count++;
+            p = p->next;
+        }
+        int mid = count / 2;   // new node goes after 'mid' nodes
+
+        if (mid == 0) {        // list is empty or has 1 node: insert at front
+            n->next = head;
+            head = n;
+        } else {
+            p = head;
+            for (int i = 1; i < mid; i++)
+                p = p->next;
+            n->next = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the middle.\n";
+    }
+
+    // b. Delete a status by day (searching from the front)
+    void deleteByDay() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        int d;
+        cout << "Enter day to delete: ";
+        cin >> d;
+        Node *p = head;
+        Node *prev = NULL;
+        while (p != NULL && p->day != d) {
+            prev = p;
+            p = p->next;
+        }
+        if (p == NULL) {
+            cout << "Day not found.\n";
+            return;
+        }
+        if (prev == NULL)
+            head = p->next;      // deleting the first node
+        else
+            prev->next = p->next;
+        delete p;
+        cout << "Status deleted.\n";
+    }
+};
+
+int main() {
+    StatusList obj;
+    int choice;
+    do {
+        cout << "\n===== Daily Stock Status =====\n";
+        cout << "1. Insert a status at the end (to build the list)\n";
+        cout << "2. Insert a status at the middle of the list\n";
+        cout << "3. Delete a status by day from the front\n";
+        cout << "4. Calculate total number of out-of-stock days\n";
+        cout << "5. Display the complete list\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertEnd(); break;
+            case 2: obj.insertMiddle(); break;
+            case 3: obj.deleteByDay(); break;
+            case 4: cout << "Total out-of-stock days = " << obj.countStatus('O') << "\n"; break;
+            case 5: obj.display(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 1 | Q14 | Inventory and Warehouse System | Problem 4 (Doubly Linked List)
+// Sorted insert, delete by ID, forward and backward traversal.
+
+#include <iostream>
+using namespace std;
+
+struct DNode {
+    int id;
+    char name[30];
+    DNode *prev;
+    DNode *next;
+};
+
+class SortedList {
+public:
+    DNode *head;
+    DNode *tail;
+
+    SortedList() {
+        head = NULL;
+        tail = NULL;
+    }
+
+    // a. Insert so that the list stays sorted by ID
+    void insertSorted() {
+        DNode *n = new DNode;
+        cout << "Enter Supplier ID: ";
+        cin >> n->id;
+        cout << "Enter Name (one word): ";
+        cin >> n->name;
+        n->prev = NULL;
+        n->next = NULL;
+
+        if (head == NULL) {                    // empty list
+            head = n;
+            tail = n;
+        } else if (n->id < head->id) {         // smaller than the first
+            n->next = head;
+            head->prev = n;
+            head = n;
+        } else {                               // find the place
+            DNode *p = head;
+            while (p->next != NULL && p->next->id < n->id)
+                p = p->next;
+            n->next = p->next;
+            n->prev = p;
+            if (p->next != NULL)
+                p->next->prev = n;
+            else
+                tail = n;                      // inserted at the end
+            p->next = n;
+        }
+        cout << "Inserted in sorted order.\n";
+    }
+
+    // b. Delete by ID
+    void deleteById() {
+        int id;
+        cout << "Enter Supplier ID to delete: ";
+        cin >> id;
+        DNode *p = head;
+        while (p != NULL && p->id != id)
+            p = p->next;
+        if (p == NULL) {
+            cout << "Not found.\n";
+            return;
+        }
+        if (p->prev != NULL)
+            p->prev->next = p->next;
+        else
+            head = p->next;                    // deleting the first node
+        if (p->next != NULL)
+            p->next->prev = p->prev;
+        else
+            tail = p->prev;                    // deleting the last node
+        delete p;
+        cout << "Deleted.\n";
+    }
+
+    // c. Forward traversal
+    void forward() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nForward:\nSupplier ID\tName\n";
+        cout << "-------------------------\n";
+        DNode *p = head;
+        while (p != NULL) {
+            cout << p->id << "\t" << p->name << "\n";
+            p = p->next;
+        }
+    }
+
+    // d. Backward traversal
+    void backward() {
+        if (tail == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nBackward:\nSupplier ID\tName\n";
+        cout << "-------------------------\n";
+        DNode *p = tail;
+        while (p != NULL) {
+            cout << p->id << "\t" << p->name << "\n";
+            p = p->prev;
+        }
+    }
+};
+
+int main() {
+    SortedList obj;
+    int choice;
+    do {
+        cout << "\n===== Suppliers (Doubly Linked List) =====\n";
+        cout << "1. Insert a supplier (list stays sorted)\n";
+        cout << "2. Delete a supplier by Supplier ID\n";
+        cout << "3. Traverse forward and display all suppliers\n";
+        cout << "4. Traverse backward and display all suppliers\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertSorted(); break;
+            case 2: obj.deleteById(); break;
+            case 3: obj.forward(); break;
+            case 4: obj.backward(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q15 | Inventory and Warehouse System | Problem 5 (Array vs Linked List)
+// Store in both, show memory representation, count by condition.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+struct Node {
+    int data;
+    Node *next;
+};
+
+class Storage {
+public:
+    int arr[MAX];   // array
+    int n;          // how many values stored
+    Node *head;     // linked list
+
+    Storage() {
+        n = 0;
+        head = NULL;
+    }
+
+    // a. Insert the value in both the array and the linked list
+    void insertValue() {
+        if (n == MAX) {
+            cout << "Storage is full.\n";
+            return;
+        }
+        int v;
+        cout << "Enter monthly sales units of product " << n + 1 << ": ";
+        cin >> v;
+
+        arr[n] = v;                       // array
+        n++;
+
+        Node *nd = new Node;              // linked list (add at end)
+        nd->data = v;
+        nd->next = NULL;
+        if (head == NULL) {
+            head = nd;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = nd;
+        }
+        cout << "Stored in both array and linked list.\n";
+    }
+
+    // b. Display memory representation
+    void showMemory() {
+        if (n == 0) {
+            cout << "Nothing stored yet.\n";
+            return;
+        }
+        cout << "\nARRAY (addresses are continuous)\n";
+        cout << "Index\tValue\tAddress\n";
+        cout << "-----------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i << "\t" << arr[i] << "\t" << &arr[i] << "\n";
+        }
+
+        cout << "\nLINKED LIST (addresses are scattered)\n";
+        cout << "Node\tData\tAddress\t\tNext\n";
+        cout << "---------------------------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->data << "\t" << p << "\t" << p->next << "\n";
+            p = p->next;
+            k++;
+        }
+        cout << "(Next = 0 means NULL, the end of the list)\n";
+    }
+
+    // c. Count values above the limit
+    void countAbove() {
+        int countArray = 0, countList = 0;
+        for (int i = 0; i < n; i++) {
+            if (arr[i] > 500)
+                countArray++;
+        }
+        Node *p = head;
+        while (p != NULL) {
+            if (p->data > 500)
+                countList++;
+            p = p->next;
+        }
+        cout << "\nStructure\tCount (> 500)\n";
+        cout << "-----------------------------\n";
+        cout << "Array\t\t" << countArray << "\n";
+        cout << "Linked List\t" << countList << "\n";
+    }
+};
+
+int main() {
+    Storage obj;
+    int choice;
+    do {
+        cout << "\n===== Monthly Sales of Products (Array vs Linked List) =====\n";
+        cout << "1. Insert a value in both array and linked list\n";
+        cout << "2. Display memory representation (index and nodes)\n";
+        cout << "3. Count products that sold more than 500 units\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertValue(); break;
+            case 2: obj.showMemory(); break;
+            case 3: obj.countAbove(); break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 1 | Q16 | Bank Management System | Problem 1 (Array)
+// Insert at position, delete by ID, search by ID, display.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Customer {
+public:
+    int id;
+    char name[30];
+    float extra;
+};
+
+class CustomerArray {
+public:
+    Customer a[MAX];   // array of records
+    int n;        // number of records stored
+
+    CustomerArray() {
+        n = 0;
+    }
+
+    // returns index of the record with this ID, or -1 if not found
+    int findIndex(int id) {
+        for (int i = 0; i < n; i++) {
+            if (a[i].id == id)
+                return i;
+        }
+        return -1;
+    }
+
+    // a. Insert at a given position
+    void insertAt() {
+        if (n == MAX) {
+            cout << "Array is full.\n";
+            return;
+        }
+        int pos;
+        cout << "Enter position (1 to " << n + 1 << "): ";
+        cin >> pos;
+        if (pos < 1 || pos > n + 1) {
+            cout << "Invalid position.\n";
+            return;
+        }
+        Customer r;
+        cout << "Enter Account No: ";
+        cin >> r.id;
+        cout << "Enter Name (one word): ";
+        cin >> r.name;
+        cout << "Enter Balance: ";
+        cin >> r.extra;
+
+        // shift elements to the right to make space
+        for (int i = n; i > pos - 1; i--) {
+            a[i] = a[i - 1];
+        }
+        a[pos - 1] = r;
+        n++;
+        cout << "Record inserted.\n";
+    }
+
+    // b. Delete by ID
+    void deleteById() {
+        int id;
+        cout << "Enter Account No to delete: ";
+        cin >> id;
+        int i = findIndex(id);
+        if (i == -1) {
+            cout << "Record not found.\n";
+            return;
+        }
+        // shift elements to the left
+        for (int j = i; j < n - 1; j++) {
+            a[j] = a[j + 1];
+        }
+        n--;
+        cout << "Record deleted.\n";
+    }
+
+    // c. Search by ID
+    void search() {
+        int id;
+        cout << "Enter Account No to search: ";
+        cin >> id;
+        int i = findIndex(id);
+        if (i == -1) {
+            cout << "Record not found.\n";
+            return;
+        }
+        cout << "\nAccount No\tName\tBalance\n";
+        cout << "----------------------------------\n";
+        cout << a[i].id << "\t" << a[i].name << "\t" << a[i].extra << "\n";
+    }
+
+    // d. Display all
+    void display() {
+        if (n == 0) {
+            cout << "No records.\n";
+            return;
+        }
+        cout << "\nNo.\tAccount No\tName\tBalance\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << a[i].id << "\t" << a[i].name << "\t" << a[i].extra << "\n";
+        }
+    }
+};
+
+int main() {
+    CustomerArray obj;
+    int choice;
+    do {
+        cout << "\n===== Customer Records (Array) =====\n";
+        cout << "1. Insert a new customer at a given position\n";
+        cout << "2. Delete a customer by Account No\n";
+        cout << "3. Search a customer by Account No\n";
+        cout << "4. Display all customers\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertAt(); break;
+            case 2: obj.deleteById(); break;
+            case 3: obj.search(); break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q17 | Bank Management System | Problem 2 (Singly Linked List)
+// Insert at end, update status of a day, count status, display.
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int day;
+    char status;
+    Node *next;
+};
+
+class StatusList {
+public:
+    Node *head;
+
+    StatusList() {
+        head = NULL;
+    }
+
+    // reads a valid status letter
+    char readStatus() {
+        char s;
+        cout << "Enter status (P = Paid, D = Due): ";
+        cin >> s;
+        return s;
+    }
+
+    // add a node at the end of the list
+    void insertEnd() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+        n->next = NULL;
+        if (head == NULL) {
+            head = n;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the end.\n";
+    }
+
+    // count the nodes whose status matches s
+    int countStatus(char s) {
+        int c = 0;
+        Node *p = head;
+        while (p != NULL) {
+            if (p->status == s)
+                c++;
+            p = p->next;
+        }
+        return c;
+    }
+
+    void display() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nNode\tDay\tStatus\n";
+        cout << "------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->day << "\t" << p->status << "\n";
+            p = p->next;
+            k++;
+        }
+    }
+
+    // b. Update the status of a given day
+    void updateStatus() {
+        int d;
+        cout << "Enter day to update: ";
+        cin >> d;
+        Node *p = head;
+        while (p != NULL && p->day != d)
+            p = p->next;
+        if (p == NULL) {
+            cout << "Day not found.\n";
+            return;
+        }
+        p->status = readStatus();
+        cout << "Status updated.\n";
+    }
+};
+
+int main() {
+    StatusList obj;
+    int choice;
+    do {
+        cout << "\n===== Daily EMI Payment Status =====\n";
+        cout << "1. Insert a status at the end of the list\n";
+        cout << "2. Update the status of a given day\n";
+        cout << "3. Calculate total number of paid EMIs\n";
+        cout << "4. Display the complete status list\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertEnd(); break;
+            case 2: obj.updateStatus(); break;
+            case 3: cout << "Total paid EMIs = " << obj.countStatus('P') << "\n"; break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q18 | Bank Management System | Problem 3 (Singly Linked List)
+// Insert at middle, delete by day from the front, count status, display.
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int day;
+    char status;
+    Node *next;
+};
+
+class StatusList {
+public:
+    Node *head;
+
+    StatusList() {
+        head = NULL;
+    }
+
+    // reads a valid status letter
+    char readStatus() {
+        char s;
+        cout << "Enter status (P = Paid, D = Due): ";
+        cin >> s;
+        return s;
+    }
+
+    // add a node at the end of the list
+    void insertEnd() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+        n->next = NULL;
+        if (head == NULL) {
+            head = n;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the end.\n";
+    }
+
+    // count the nodes whose status matches s
+    int countStatus(char s) {
+        int c = 0;
+        Node *p = head;
+        while (p != NULL) {
+            if (p->status == s)
+                c++;
+            p = p->next;
+        }
+        return c;
+    }
+
+    void display() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nNode\tDay\tStatus\n";
+        cout << "------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->day << "\t" << p->status << "\n";
+            p = p->next;
+            k++;
+        }
+    }
+
+    // a. Insert a status at the middle of the list
+    void insertMiddle() {
+        Node *n = new Node;
+        cout << "Enter day number: ";
+        cin >> n->day;
+        n->status = readStatus();
+
+        // count nodes to find the middle
+        int count = 0;
+        Node *p = head;
+        while (p != NULL) {
+            count++;
+            p = p->next;
+        }
+        int mid = count / 2;   // new node goes after 'mid' nodes
+
+        if (mid == 0) {        // list is empty or has 1 node: insert at front
+            n->next = head;
+            head = n;
+        } else {
+            p = head;
+            for (int i = 1; i < mid; i++)
+                p = p->next;
+            n->next = p->next;
+            p->next = n;
+        }
+        cout << "Status inserted at the middle.\n";
+    }
+
+    // b. Delete a status by day (searching from the front)
+    void deleteByDay() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        int d;
+        cout << "Enter day to delete: ";
+        cin >> d;
+        Node *p = head;
+        Node *prev = NULL;
+        while (p != NULL && p->day != d) {
+            prev = p;
+            p = p->next;
+        }
+        if (p == NULL) {
+            cout << "Day not found.\n";
+            return;
+        }
+        if (prev == NULL)
+            head = p->next;      // deleting the first node
+        else
+            prev->next = p->next;
+        delete p;
+        cout << "Status deleted.\n";
+    }
+};
+
+int main() {
+    StatusList obj;
+    int choice;
+    do {
+        cout << "\n===== Daily EMI Payment Status =====\n";
+        cout << "1. Insert a status at the end (to build the list)\n";
+        cout << "2. Insert a status at the middle of the list\n";
+        cout << "3. Delete a status by day from the front\n";
+        cout << "4. Calculate total number of due EMIs\n";
+        cout << "5. Display the complete list\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertEnd(); break;
+            case 2: obj.insertMiddle(); break;
+            case 3: obj.deleteByDay(); break;
+            case 4: cout << "Total due EMIs = " << obj.countStatus('D') << "\n"; break;
+            case 5: obj.display(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 1 | Q19 | Bank Management System | Problem 4 (Doubly Linked List)
+// Sorted insert, delete by ID, forward and backward traversal.
+
+#include <iostream>
+using namespace std;
+
+struct DNode {
+    int id;
+    char name[30];
+    DNode *prev;
+    DNode *next;
+};
+
+class SortedList {
+public:
+    DNode *head;
+    DNode *tail;
+
+    SortedList() {
+        head = NULL;
+        tail = NULL;
+    }
+
+    // a. Insert so that the list stays sorted by ID
+    void insertSorted() {
+        DNode *n = new DNode;
+        cout << "Enter Application No: ";
+        cin >> n->id;
+        cout << "Enter Name (one word): ";
+        cin >> n->name;
+        n->prev = NULL;
+        n->next = NULL;
+
+        if (head == NULL) {                    // empty list
+            head = n;
+            tail = n;
+        } else if (n->id < head->id) {         // smaller than the first
+            n->next = head;
+            head->prev = n;
+            head = n;
+        } else {                               // find the place
+            DNode *p = head;
+            while (p->next != NULL && p->next->id < n->id)
+                p = p->next;
+            n->next = p->next;
+            n->prev = p;
+            if (p->next != NULL)
+                p->next->prev = n;
+            else
+                tail = n;                      // inserted at the end
+            p->next = n;
+        }
+        cout << "Inserted in sorted order.\n";
+    }
+
+    // b. Delete by ID
+    void deleteById() {
+        int id;
+        cout << "Enter Application No to delete: ";
+        cin >> id;
+        DNode *p = head;
+        while (p != NULL && p->id != id)
+            p = p->next;
+        if (p == NULL) {
+            cout << "Not found.\n";
+            return;
+        }
+        if (p->prev != NULL)
+            p->prev->next = p->next;
+        else
+            head = p->next;                    // deleting the first node
+        if (p->next != NULL)
+            p->next->prev = p->prev;
+        else
+            tail = p->prev;                    // deleting the last node
+        delete p;
+        cout << "Deleted.\n";
+    }
+
+    // c. Forward traversal
+    void forward() {
+        if (head == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nForward:\nApplication No\tName\n";
+        cout << "-------------------------\n";
+        DNode *p = head;
+        while (p != NULL) {
+            cout << p->id << "\t" << p->name << "\n";
+            p = p->next;
+        }
+    }
+
+    // d. Backward traversal
+    void backward() {
+        if (tail == NULL) {
+            cout << "List is empty.\n";
+            return;
+        }
+        cout << "\nBackward:\nApplication No\tName\n";
+        cout << "-------------------------\n";
+        DNode *p = tail;
+        while (p != NULL) {
+            cout << p->id << "\t" << p->name << "\n";
+            p = p->prev;
+        }
+    }
+};
+
+int main() {
+    SortedList obj;
+    int choice;
+    do {
+        cout << "\n===== Loan Applicants (Doubly Linked List) =====\n";
+        cout << "1. Insert a applicant (list stays sorted)\n";
+        cout << "2. Delete a applicant by Application No\n";
+        cout << "3. Traverse forward and display all applicants\n";
+        cout << "4. Traverse backward and display all applicants\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertSorted(); break;
+            case 2: obj.deleteById(); break;
+            case 3: obj.forward(); break;
+            case 4: obj.backward(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q20 | Bank Management System | Problem 5 (Array vs Linked List)
+// Store in both, show memory representation, count by condition.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+struct Node {
+    float data;
+    Node *next;
+};
+
+class Storage {
+public:
+    float arr[MAX];   // array
+    int n;          // how many values stored
+    Node *head;     // linked list
+
+    Storage() {
+        n = 0;
+        head = NULL;
+    }
+
+    // a. Insert the value in both the array and the linked list
+    void insertValue() {
+        if (n == MAX) {
+            cout << "Storage is full.\n";
+            return;
+        }
+        float v;
+        cout << "Enter account balance of customer " << n + 1 << ": ";
+        cin >> v;
+
+        arr[n] = v;                       // array
+        n++;
+
+        Node *nd = new Node;              // linked list (add at end)
+        nd->data = v;
+        nd->next = NULL;
+        if (head == NULL) {
+            head = nd;
+        } else {
+            Node *p = head;
+            while (p->next != NULL)
+                p = p->next;
+            p->next = nd;
+        }
+        cout << "Stored in both array and linked list.\n";
+    }
+
+    // b. Display memory representation
+    void showMemory() {
+        if (n == 0) {
+            cout << "Nothing stored yet.\n";
+            return;
+        }
+        cout << "\nARRAY (addresses are continuous)\n";
+        cout << "Index\tValue\tAddress\n";
+        cout << "-----------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i << "\t" << arr[i] << "\t" << &arr[i] << "\n";
+        }
+
+        cout << "\nLINKED LIST (addresses are scattered)\n";
+        cout << "Node\tData\tAddress\t\tNext\n";
+        cout << "---------------------------------------------\n";
+        Node *p = head;
+        int k = 1;
+        while (p != NULL) {
+            cout << k << "\t" << p->data << "\t" << p << "\t" << p->next << "\n";
+            p = p->next;
+            k++;
+        }
+        cout << "(Next = 0 means NULL, the end of the list)\n";
+    }
+
+    // c. Count values above the limit
+    void countAbove() {
+        int countArray = 0, countList = 0;
+        for (int i = 0; i < n; i++) {
+            if (arr[i] > 50000)
+                countArray++;
+        }
+        Node *p = head;
+        while (p != NULL) {
+            if (p->data > 50000)
+                countList++;
+            p = p->next;
+        }
+        cout << "\nStructure\tCount (> 50000)\n";
+        cout << "-----------------------------\n";
+        cout << "Array\t\t" << countArray << "\n";
+        cout << "Linked List\t" << countList << "\n";
+    }
+};
+
+int main() {
+    Storage obj;
+    int choice;
+    do {
+        cout << "\n===== Account Balances (Array vs Linked List) =====\n";
+        cout << "1. Insert a value in both array and linked list\n";
+        cout << "2. Display memory representation (index and nodes)\n";
+        cout << "3. Count customers with balance above 50000\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.insertValue(); break;
+            case 2: obj.showMemory(); break;
+            case 3: obj.countAbove(); break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+

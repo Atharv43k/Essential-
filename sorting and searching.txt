@@ -1,0 +1,2342 @@
+// PDF 2 | Q01 | Library Management System | Problem 1 (Sorting)
+// Selection sort, insertion sort with shift count, top 5.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Record {
+public:
+    int id;
+    char name[30];
+    int score;
+};
+
+class Ranking {
+public:
+    Record data[MAX];   // original list
+    Record temp[MAX];   // working copy used for sorting
+    int n;
+
+    Ranking() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Book ID: ";
+            cin >> data[n].id;
+            cout << "Enter Title (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Issue Count: ";
+            cin >> data[n].score;
+            n++;
+        }
+    }
+
+    // copy the original list into temp so each sort starts fresh
+    void copyData() {
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+    }
+
+    // print the first 'count' records of temp
+    void show(int count) {
+        cout << "\nRank\tBook ID\tTitle\tIssue Count\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < count; i++) {
+            cout << i + 1 << "\t" << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].score << "\n";
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        show(n);
+    }
+
+    // sorts temp in descending order of score
+    void doSelectionSort() {
+        for (int i = 0; i < n - 1; i++) {
+            int max = i;
+            for (int j = i + 1; j < n; j++) {
+                if (temp[j].score > temp[max].score)
+                    max = j;
+            }
+            Record t = temp[i];
+            temp[i] = temp[max];
+            temp[max] = t;
+        }
+    }
+
+    // a. Selection sort (descending)
+    void selectionSort() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        doSelectionSort();
+        cout << "\nSELECTION SORT (descending)";
+        show(n);
+    }
+
+    // b. Insertion sort (descending) + count the shifts
+    void insertionSort() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        int shifts = 0;
+        for (int i = 1; i < n; i++) {
+            Record key = temp[i];
+            int j = i - 1;
+            while (j >= 0 && temp[j].score < key.score) {
+                temp[j + 1] = temp[j];     // shift right
+                shifts++;
+                j--;
+            }
+            temp[j + 1] = key;
+        }
+        cout << "\nINSERTION SORT (descending)";
+        show(n);
+        cout << "Number of shifts = " << shifts << "\n";
+    }
+
+    // c. Top 5
+    void top5() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        doSelectionSort();
+        int count = 5;
+        if (n < 5)
+            count = n;
+        cout << "\nTOP 5 most-issued books";
+        show(count);
+    }
+};
+
+int main() {
+    Ranking obj;
+    int choice;
+    do {
+        cout << "\n===== Most-Issued Books =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display original list\n";
+        cout << "3. Selection sort (descending)\n";
+        cout << "4. Insertion sort (descending) and count shifts\n";
+        cout << "5. Display top 5 most-issued books\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.selectionSort(); break;
+            case 4: obj.insertionSort(); break;
+            case 5: obj.top5(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 2 | Q02 | Library Management System | Problem 2 (Searching)
+// Linear search by name, binary search by ID, comparison counts.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+// returns true if both words are the same
+bool sameWord(char a[], char b[]) {
+    int i = 0;
+    while (a[i] != '\0' && a[i] == b[i])
+        i++;
+    return a[i] == b[i];
+}
+
+class Record {
+public:
+    int id;
+    char name[30];
+    char extra[30];
+};
+
+class Search {
+public:
+    Record data[MAX];
+    Record temp[MAX];
+    int n;
+
+    Search() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Book ID: ";
+            cin >> data[n].id;
+            cout << "Enter Title (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Author (one word): ";
+            cin >> data[n].extra;
+            n++;
+        }
+    }
+
+    void display() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        cout << "\nNo.\tBook ID\tTitle\tAuthor\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << data[i].id << "\t" << data[i].name << "\t" << data[i].extra << "\n";
+        }
+    }
+
+    // a. Linear search by name
+    void linearSearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        char key[30];
+        cout << "Enter Title to search: ";
+        cin >> key;
+        int comparisons = 0;
+        int pos = -1;
+        for (int i = 0; i < n; i++) {
+            comparisons++;
+            if (sameWord(data[i].name, key)) {
+                pos = i;
+                break;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << data[pos].id << "\t" << data[pos].name << "\t" << data[pos].extra << "\n";
+        cout << "Number of comparisons (linear search) = " << comparisons << "\n";
+    }
+
+    // b. Binary search by ID (sort first)
+    void binarySearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        // copy and sort by ID (bubble sort)
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (temp[j].id > temp[j + 1].id) {
+                    Record t = temp[j];
+                    temp[j] = temp[j + 1];
+                    temp[j + 1] = t;
+                }
+            }
+        }
+        cout << "\nSorted by Book ID:\n";
+        cout << "Book ID\tTitle\tAuthor\n";
+        cout << "----------------------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].extra << "\n";
+
+        int key;
+        cout << "\nEnter Book ID to search: ";
+        cin >> key;
+        int low = 0, high = n - 1;
+        int comparisons = 0;
+        int pos = -1;
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            comparisons++;
+            if (temp[mid].id == key) {
+                pos = mid;
+                break;
+            } else if (temp[mid].id < key) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << temp[pos].id << "\t" << temp[pos].name << "\t" << temp[pos].extra << "\n";
+        cout << "Number of comparisons (binary search) = " << comparisons << "\n";
+    }
+};
+
+int main() {
+    Search obj;
+    int choice;
+    do {
+        cout << "\n===== Library Book Search =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display all records\n";
+        cout << "3. Linear search by Title\n";
+        cout << "4. Binary search by Book ID (sorts first)\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.display(); break;
+            case 3: obj.linearSearch(); break;
+            case 4: obj.binarySearch(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 2 | Q07 | Hospital Management System | Problem 3 (Quick Sort)
+// Partition, recursive quick sort, display sorted list.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class QuickSort {
+public:
+    float data[MAX];   // original values
+    float arr[MAX];    // copy that gets sorted
+    int n;
+
+    QuickSort() {
+        n = 0;
+    }
+
+    void enter() {
+        cout << "How many values (max " << MAX << ")? ";
+        cin >> n;
+        if (n < 0 || n > MAX) {
+            n = 0;
+            cout << "Invalid count.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            cout << "Enter Temperature " << i + 1 << ": ";
+            cin >> data[i];
+        }
+    }
+
+    // a. Partition: puts the pivot (last element) at its correct place
+    int partition(int low, int high) {
+        float pivot = arr[high];
+        int i = low - 1;
+        for (int j = low; j < high; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                float t = arr[i];
+                arr[i] = arr[j];
+                arr[j] = t;
+            }
+        }
+        float t = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = t;
+        return i + 1;      // position of the pivot
+    }
+
+    // b. Recursively apply quick sort
+    void quickSort(int low, int high) {
+        if (low < high) {
+            int p = partition(low, high);
+            quickSort(low, p - 1);
+            quickSort(p + 1, high);
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        cout << "\nIndex\tTemperature\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << data[i] << "\n";
+    }
+
+    // c. Display the sorted list
+    void sortAndShow() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++)
+            arr[i] = data[i];
+        quickSort(0, n - 1);
+        cout << "\nSORTED LIST (ascending)\n";
+        cout << "Index\tTemperature\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << arr[i] << "\n";
+    }
+};
+
+int main() {
+    QuickSort obj;
+    int choice;
+    do {
+        cout << "\n===== Body Temperature (Quick Sort) =====\n";
+        cout << "1. Enter Temperatures\n";
+        cout << "2. Display original list\n";
+        cout << "3. Quick sort and display sorted list\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enter(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.sortAndShow(); break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 2 | Q03 | Library Management System | Problem 3 (Quick Sort)
+// Partition, recursive quick sort, display sorted list.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class QuickSort {
+public:
+    float data[MAX];   // original values
+    float arr[MAX];    // copy that gets sorted
+    int n;
+
+    QuickSort() {
+        n = 0;
+    }
+
+    void enter() {
+        cout << "How many values (max " << MAX << ")? ";
+        cin >> n;
+        if (n < 0 || n > MAX) {
+            n = 0;
+            cout << "Invalid count.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            cout << "Enter Fine Amount " << i + 1 << ": ";
+            cin >> data[i];
+        }
+    }
+
+    // a. Partition: puts the pivot (last element) at its correct place
+    int partition(int low, int high) {
+        float pivot = arr[high];
+        int i = low - 1;
+        for (int j = low; j < high; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                float t = arr[i];
+                arr[i] = arr[j];
+                arr[j] = t;
+            }
+        }
+        float t = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = t;
+        return i + 1;      // position of the pivot
+    }
+
+    // b. Recursively apply quick sort
+    void quickSort(int low, int high) {
+        if (low < high) {
+            int p = partition(low, high);
+            quickSort(low, p - 1);
+            quickSort(p + 1, high);
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        cout << "\nIndex\tFine Amount\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << data[i] << "\n";
+    }
+
+    // c. Display the sorted list
+    void sortAndShow() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++)
+            arr[i] = data[i];
+        quickSort(0, n - 1);
+        cout << "\nSORTED LIST (ascending)\n";
+        cout << "Index\tFine Amount\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << arr[i] << "\n";
+    }
+};
+
+int main() {
+    QuickSort obj;
+    int choice;
+    do {
+        cout << "\n===== Fines Collected (Quick Sort) =====\n";
+        cout << "1. Enter Fine Amounts\n";
+        cout << "2. Display original list\n";
+        cout << "3. Quick sort and display sorted list\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enter(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.sortAndShow(); break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 2 | Q04 | Library Management System | Problem 4 (Selection and Bubble Sort)
+// Selection and bubble sort ascending, five highest values.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Sorter {
+public:
+    float data[MAX];   // original values
+    float arr[MAX];    // copy that gets sorted
+    int n;
+
+    Sorter() {
+        n = 0;
+    }
+
+    void enter() {
+        cout << "How many values (max " << MAX << ")? ";
+        cin >> n;
+        if (n < 0 || n > MAX) {
+            n = 0;
+            cout << "Invalid count.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            cout << "Enter Book Price " << i + 1 << ": ";
+            cin >> data[i];
+        }
+    }
+
+    void copyData() {
+        for (int i = 0; i < n; i++)
+            arr[i] = data[i];
+    }
+
+    void show(const char title[]) {
+        cout << "\n" << title << "\n";
+        cout << "Index\tBook Price\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << arr[i] << "\n";
+    }
+
+    // sorts arr in ascending order (selection sort)
+    void doSelection() {
+        for (int i = 0; i < n - 1; i++) {
+            int min = i;
+            for (int j = i + 1; j < n; j++) {
+                if (arr[j] < arr[min])
+                    min = j;
+            }
+            float t = arr[i];
+            arr[i] = arr[min];
+            arr[min] = t;
+        }
+    }
+
+    // sorts arr in ascending order (bubble sort)
+    void doBubble() {
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    float t = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = t;
+                }
+            }
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        show("ORIGINAL ARRAY");
+    }
+
+    // a. Selection sort
+    void selectionSort() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doSelection();
+        show("SELECTION SORT (ascending)");
+    }
+
+    // b. Bubble sort
+    void bubbleSort() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doBubble();
+        show("BUBBLE SORT (ascending)");
+    }
+
+    // display the five highest values
+    void fiveHighest() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doBubble();
+        int count = 5;
+        if (n < 5)
+            count = n;
+        cout << "\nFIVE HIGHEST Book PriceS\n";
+        cout << "Rank\tBook Price\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < count; i++)
+            cout << i + 1 << "\t" << arr[n - 1 - i] << "\n";
+    }
+};
+
+int main() {
+    Sorter obj;
+    int choice;
+    do {
+        cout << "\n===== Book Prices (Selection and Bubble Sort) =====\n";
+        cout << "1. Enter Book Prices\n";
+        cout << "2. Display original array\n";
+        cout << "3. Selection sort (ascending)\n";
+        cout << "4. Bubble sort (ascending)\n";
+        cout << "5. Display the five highest Book Prices\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enter(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.selectionSort(); break;
+            case 4: obj.bubbleSort(); break;
+            case 5: obj.fiveHighest(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 2 | Q05 | Hospital Management System | Problem 1 (Sorting)
+// Selection sort, insertion sort with shift count, top 5.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Record {
+public:
+    int id;
+    char name[30];
+    int score;
+};
+
+class Ranking {
+public:
+    Record data[MAX];   // original list
+    Record temp[MAX];   // working copy used for sorting
+    int n;
+
+    Ranking() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Patient ID: ";
+            cin >> data[n].id;
+            cout << "Enter Name (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Severity: ";
+            cin >> data[n].score;
+            n++;
+        }
+    }
+
+    // copy the original list into temp so each sort starts fresh
+    void copyData() {
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+    }
+
+    // print the first 'count' records of temp
+    void show(int count) {
+        cout << "\nRank\tPatient ID\tName\tSeverity\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < count; i++) {
+            cout << i + 1 << "\t" << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].score << "\n";
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        show(n);
+    }
+
+    // sorts temp in descending order of score
+    void doSelectionSort() {
+        for (int i = 0; i < n - 1; i++) {
+            int max = i;
+            for (int j = i + 1; j < n; j++) {
+                if (temp[j].score > temp[max].score)
+                    max = j;
+            }
+            Record t = temp[i];
+            temp[i] = temp[max];
+            temp[max] = t;
+        }
+    }
+
+    // a. Selection sort (descending)
+    void selectionSort() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        doSelectionSort();
+        cout << "\nSELECTION SORT (descending)";
+        show(n);
+    }
+
+    // b. Insertion sort (descending) + count the shifts
+    void insertionSort() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        int shifts = 0;
+        for (int i = 1; i < n; i++) {
+            Record key = temp[i];
+            int j = i - 1;
+            while (j >= 0 && temp[j].score < key.score) {
+                temp[j + 1] = temp[j];     // shift right
+                shifts++;
+                j--;
+            }
+            temp[j + 1] = key;
+        }
+        cout << "\nINSERTION SORT (descending)";
+        show(n);
+        cout << "Number of shifts = " << shifts << "\n";
+    }
+
+    // c. Top 5
+    void top5() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        doSelectionSort();
+        int count = 5;
+        if (n < 5)
+            count = n;
+        cout << "\nTOP 5 most critical patients";
+        show(count);
+    }
+};
+
+int main() {
+    Ranking obj;
+    int choice;
+    do {
+        cout << "\n===== Patient Priority List =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display original list\n";
+        cout << "3. Selection sort (descending)\n";
+        cout << "4. Insertion sort (descending) and count shifts\n";
+        cout << "5. Display top 5 most critical patients\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.selectionSort(); break;
+            case 4: obj.insertionSort(); break;
+            case 5: obj.top5(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 2 | Q06 | Hospital Management System | Problem 2 (Searching)
+// Linear search by name, binary search by ID, comparison counts.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+// returns true if both words are the same
+bool sameWord(char a[], char b[]) {
+    int i = 0;
+    while (a[i] != '\0' && a[i] == b[i])
+        i++;
+    return a[i] == b[i];
+}
+
+class Record {
+public:
+    int id;
+    char name[30];
+    char extra[30];
+};
+
+class Search {
+public:
+    Record data[MAX];
+    Record temp[MAX];
+    int n;
+
+    Search() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Patient ID: ";
+            cin >> data[n].id;
+            cout << "Enter Name (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Ward (one word): ";
+            cin >> data[n].extra;
+            n++;
+        }
+    }
+
+    void display() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        cout << "\nNo.\tPatient ID\tName\tWard\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << data[i].id << "\t" << data[i].name << "\t" << data[i].extra << "\n";
+        }
+    }
+
+    // a. Linear search by name
+    void linearSearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        char key[30];
+        cout << "Enter Name to search: ";
+        cin >> key;
+        int comparisons = 0;
+        int pos = -1;
+        for (int i = 0; i < n; i++) {
+            comparisons++;
+            if (sameWord(data[i].name, key)) {
+                pos = i;
+                break;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << data[pos].id << "\t" << data[pos].name << "\t" << data[pos].extra << "\n";
+        cout << "Number of comparisons (linear search) = " << comparisons << "\n";
+    }
+
+    // b. Binary search by ID (sort first)
+    void binarySearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        // copy and sort by ID (bubble sort)
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (temp[j].id > temp[j + 1].id) {
+                    Record t = temp[j];
+                    temp[j] = temp[j + 1];
+                    temp[j + 1] = t;
+                }
+            }
+        }
+        cout << "\nSorted by Patient ID:\n";
+        cout << "Patient ID\tName\tWard\n";
+        cout << "----------------------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].extra << "\n";
+
+        int key;
+        cout << "\nEnter Patient ID to search: ";
+        cin >> key;
+        int low = 0, high = n - 1;
+        int comparisons = 0;
+        int pos = -1;
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            comparisons++;
+            if (temp[mid].id == key) {
+                pos = mid;
+                break;
+            } else if (temp[mid].id < key) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << temp[pos].id << "\t" << temp[pos].name << "\t" << temp[pos].extra << "\n";
+        cout << "Number of comparisons (binary search) = " << comparisons << "\n";
+    }
+};
+
+int main() {
+    Search obj;
+    int choice;
+    do {
+        cout << "\n===== Hospital Patient Search =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display all records\n";
+        cout << "3. Linear search by Name\n";
+        cout << "4. Binary search by Patient ID (sorts first)\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.display(); break;
+            case 3: obj.linearSearch(); break;
+            case 4: obj.binarySearch(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 2 | Q08 | Hospital Management System | Problem 4 (Selection and Bubble Sort)
+// Selection and bubble sort ascending, five highest values.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Sorter {
+public:
+    float data[MAX];   // original values
+    float arr[MAX];    // copy that gets sorted
+    int n;
+
+    Sorter() {
+        n = 0;
+    }
+
+    void enter() {
+        cout << "How many values (max " << MAX << ")? ";
+        cin >> n;
+        if (n < 0 || n > MAX) {
+            n = 0;
+            cout << "Invalid count.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            cout << "Enter Bill Amount " << i + 1 << ": ";
+            cin >> data[i];
+        }
+    }
+
+    void copyData() {
+        for (int i = 0; i < n; i++)
+            arr[i] = data[i];
+    }
+
+    void show(const char title[]) {
+        cout << "\n" << title << "\n";
+        cout << "Index\tBill Amount\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << arr[i] << "\n";
+    }
+
+    // sorts arr in ascending order (selection sort)
+    void doSelection() {
+        for (int i = 0; i < n - 1; i++) {
+            int min = i;
+            for (int j = i + 1; j < n; j++) {
+                if (arr[j] < arr[min])
+                    min = j;
+            }
+            float t = arr[i];
+            arr[i] = arr[min];
+            arr[min] = t;
+        }
+    }
+
+    // sorts arr in ascending order (bubble sort)
+    void doBubble() {
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    float t = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = t;
+                }
+            }
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        show("ORIGINAL ARRAY");
+    }
+
+    // a. Selection sort
+    void selectionSort() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doSelection();
+        show("SELECTION SORT (ascending)");
+    }
+
+    // b. Bubble sort
+    void bubbleSort() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doBubble();
+        show("BUBBLE SORT (ascending)");
+    }
+
+    // display the five highest values
+    void fiveHighest() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doBubble();
+        int count = 5;
+        if (n < 5)
+            count = n;
+        cout << "\nFIVE HIGHEST Bill AmountS\n";
+        cout << "Rank\tBill Amount\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < count; i++)
+            cout << i + 1 << "\t" << arr[n - 1 - i] << "\n";
+    }
+};
+
+int main() {
+    Sorter obj;
+    int choice;
+    do {
+        cout << "\n===== Patient Bills (Selection and Bubble Sort) =====\n";
+        cout << "1. Enter Bill Amounts\n";
+        cout << "2. Display original array\n";
+        cout << "3. Selection sort (ascending)\n";
+        cout << "4. Bubble sort (ascending)\n";
+        cout << "5. Display the five highest Bill Amounts\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enter(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.selectionSort(); break;
+            case 4: obj.bubbleSort(); break;
+            case 5: obj.fiveHighest(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 2 | Q09 | Inventory and Warehouse System | Problem 1 (Sorting)
+// Selection sort, insertion sort with shift count, top 5.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Record {
+public:
+    int id;
+    char name[30];
+    int score;
+};
+
+class Ranking {
+public:
+    Record data[MAX];   // original list
+    Record temp[MAX];   // working copy used for sorting
+    int n;
+
+    Ranking() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Product ID: ";
+            cin >> data[n].id;
+            cout << "Enter Name (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Sales Units: ";
+            cin >> data[n].score;
+            n++;
+        }
+    }
+
+    // copy the original list into temp so each sort starts fresh
+    void copyData() {
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+    }
+
+    // print the first 'count' records of temp
+    void show(int count) {
+        cout << "\nRank\tProduct ID\tName\tSales Units\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < count; i++) {
+            cout << i + 1 << "\t" << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].score << "\n";
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        show(n);
+    }
+
+    // sorts temp in descending order of score
+    void doSelectionSort() {
+        for (int i = 0; i < n - 1; i++) {
+            int max = i;
+            for (int j = i + 1; j < n; j++) {
+                if (temp[j].score > temp[max].score)
+                    max = j;
+            }
+            Record t = temp[i];
+            temp[i] = temp[max];
+            temp[max] = t;
+        }
+    }
+
+    // a. Selection sort (descending)
+    void selectionSort() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        doSelectionSort();
+        cout << "\nSELECTION SORT (descending)";
+        show(n);
+    }
+
+    // b. Insertion sort (descending) + count the shifts
+    void insertionSort() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        int shifts = 0;
+        for (int i = 1; i < n; i++) {
+            Record key = temp[i];
+            int j = i - 1;
+            while (j >= 0 && temp[j].score < key.score) {
+                temp[j + 1] = temp[j];     // shift right
+                shifts++;
+                j--;
+            }
+            temp[j + 1] = key;
+        }
+        cout << "\nINSERTION SORT (descending)";
+        show(n);
+        cout << "Number of shifts = " << shifts << "\n";
+    }
+
+    // c. Top 5
+    void top5() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        doSelectionSort();
+        int count = 5;
+        if (n < 5)
+            count = n;
+        cout << "\nTOP 5 best-selling products";
+        show(count);
+    }
+};
+
+int main() {
+    Ranking obj;
+    int choice;
+    do {
+        cout << "\n===== Best-Seller List =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display original list\n";
+        cout << "3. Selection sort (descending)\n";
+        cout << "4. Insertion sort (descending) and count shifts\n";
+        cout << "5. Display top 5 best-selling products\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.selectionSort(); break;
+            case 4: obj.insertionSort(); break;
+            case 5: obj.top5(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 2 | Q10 | Inventory and Warehouse System | Problem 2 (Searching)
+// Linear search by name, binary search by ID, comparison counts.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+// returns true if both words are the same
+bool sameWord(char a[], char b[]) {
+    int i = 0;
+    while (a[i] != '\0' && a[i] == b[i])
+        i++;
+    return a[i] == b[i];
+}
+
+class Record {
+public:
+    int id;
+    char name[30];
+    char extra[30];
+};
+
+class Search {
+public:
+    Record data[MAX];
+    Record temp[MAX];
+    int n;
+
+    Search() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Product ID: ";
+            cin >> data[n].id;
+            cout << "Enter Name (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Category (one word): ";
+            cin >> data[n].extra;
+            n++;
+        }
+    }
+
+    void display() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        cout << "\nNo.\tProduct ID\tName\tCategory\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << data[i].id << "\t" << data[i].name << "\t" << data[i].extra << "\n";
+        }
+    }
+
+    // a. Linear search by name
+    void linearSearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        char key[30];
+        cout << "Enter Name to search: ";
+        cin >> key;
+        int comparisons = 0;
+        int pos = -1;
+        for (int i = 0; i < n; i++) {
+            comparisons++;
+            if (sameWord(data[i].name, key)) {
+                pos = i;
+                break;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << data[pos].id << "\t" << data[pos].name << "\t" << data[pos].extra << "\n";
+        cout << "Number of comparisons (linear search) = " << comparisons << "\n";
+    }
+
+    // b. Binary search by ID (sort first)
+    void binarySearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        // copy and sort by ID (bubble sort)
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (temp[j].id > temp[j + 1].id) {
+                    Record t = temp[j];
+                    temp[j] = temp[j + 1];
+                    temp[j + 1] = t;
+                }
+            }
+        }
+        cout << "\nSorted by Product ID:\n";
+        cout << "Product ID\tName\tCategory\n";
+        cout << "----------------------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].extra << "\n";
+
+        int key;
+        cout << "\nEnter Product ID to search: ";
+        cin >> key;
+        int low = 0, high = n - 1;
+        int comparisons = 0;
+        int pos = -1;
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            comparisons++;
+            if (temp[mid].id == key) {
+                pos = mid;
+                break;
+            } else if (temp[mid].id < key) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << temp[pos].id << "\t" << temp[pos].name << "\t" << temp[pos].extra << "\n";
+        cout << "Number of comparisons (binary search) = " << comparisons << "\n";
+    }
+};
+
+int main() {
+    Search obj;
+    int choice;
+    do {
+        cout << "\n===== Warehouse Product Search =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display all records\n";
+        cout << "3. Linear search by Name\n";
+        cout << "4. Binary search by Product ID (sorts first)\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.display(); break;
+            case 3: obj.linearSearch(); break;
+            case 4: obj.binarySearch(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 2 | Q11 | Inventory and Warehouse System | Problem 3 (Quick Sort)
+// Partition, recursive quick sort, display sorted list.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class QuickSort {
+public:
+    float data[MAX];   // original values
+    float arr[MAX];    // copy that gets sorted
+    int n;
+
+    QuickSort() {
+        n = 0;
+    }
+
+    void enter() {
+        cout << "How many values (max " << MAX << ")? ";
+        cin >> n;
+        if (n < 0 || n > MAX) {
+            n = 0;
+            cout << "Invalid count.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            cout << "Enter Unit Price " << i + 1 << ": ";
+            cin >> data[i];
+        }
+    }
+
+    // a. Partition: puts the pivot (last element) at its correct place
+    int partition(int low, int high) {
+        float pivot = arr[high];
+        int i = low - 1;
+        for (int j = low; j < high; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                float t = arr[i];
+                arr[i] = arr[j];
+                arr[j] = t;
+            }
+        }
+        float t = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = t;
+        return i + 1;      // position of the pivot
+    }
+
+    // b. Recursively apply quick sort
+    void quickSort(int low, int high) {
+        if (low < high) {
+            int p = partition(low, high);
+            quickSort(low, p - 1);
+            quickSort(p + 1, high);
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        cout << "\nIndex\tUnit Price\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << data[i] << "\n";
+    }
+
+    // c. Display the sorted list
+    void sortAndShow() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++)
+            arr[i] = data[i];
+        quickSort(0, n - 1);
+        cout << "\nSORTED LIST (ascending)\n";
+        cout << "Index\tUnit Price\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << arr[i] << "\n";
+    }
+};
+
+int main() {
+    QuickSort obj;
+    int choice;
+    do {
+        cout << "\n===== Unit Prices (Quick Sort) =====\n";
+        cout << "1. Enter Unit Prices\n";
+        cout << "2. Display original list\n";
+        cout << "3. Quick sort and display sorted list\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enter(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.sortAndShow(); break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 2 | Q12 | Inventory and Warehouse System | Problem 4 (Selection and Bubble Sort)
+// Selection and bubble sort ascending, five highest values.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Sorter {
+public:
+    float data[MAX];   // original values
+    float arr[MAX];    // copy that gets sorted
+    int n;
+
+    Sorter() {
+        n = 0;
+    }
+
+    void enter() {
+        cout << "How many values (max " << MAX << ")? ";
+        cin >> n;
+        if (n < 0 || n > MAX) {
+            n = 0;
+            cout << "Invalid count.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            cout << "Enter Stock Quantity " << i + 1 << ": ";
+            cin >> data[i];
+        }
+    }
+
+    void copyData() {
+        for (int i = 0; i < n; i++)
+            arr[i] = data[i];
+    }
+
+    void show(const char title[]) {
+        cout << "\n" << title << "\n";
+        cout << "Index\tStock Quantity\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << arr[i] << "\n";
+    }
+
+    // sorts arr in ascending order (selection sort)
+    void doSelection() {
+        for (int i = 0; i < n - 1; i++) {
+            int min = i;
+            for (int j = i + 1; j < n; j++) {
+                if (arr[j] < arr[min])
+                    min = j;
+            }
+            float t = arr[i];
+            arr[i] = arr[min];
+            arr[min] = t;
+        }
+    }
+
+    // sorts arr in ascending order (bubble sort)
+    void doBubble() {
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    float t = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = t;
+                }
+            }
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        show("ORIGINAL ARRAY");
+    }
+
+    // a. Selection sort
+    void selectionSort() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doSelection();
+        show("SELECTION SORT (ascending)");
+    }
+
+    // b. Bubble sort
+    void bubbleSort() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doBubble();
+        show("BUBBLE SORT (ascending)");
+    }
+
+    // display the five highest values
+    void fiveHighest() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doBubble();
+        int count = 5;
+        if (n < 5)
+            count = n;
+        cout << "\nFIVE HIGHEST Stock QuantityS\n";
+        cout << "Rank\tStock Quantity\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < count; i++)
+            cout << i + 1 << "\t" << arr[n - 1 - i] << "\n";
+    }
+};
+
+int main() {
+    Sorter obj;
+    int choice;
+    do {
+        cout << "\n===== Stock Quantities (Selection and Bubble Sort) =====\n";
+        cout << "1. Enter Stock Quantitys\n";
+        cout << "2. Display original array\n";
+        cout << "3. Selection sort (ascending)\n";
+        cout << "4. Bubble sort (ascending)\n";
+        cout << "5. Display the five highest Stock Quantitys\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enter(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.selectionSort(); break;
+            case 4: obj.bubbleSort(); break;
+            case 5: obj.fiveHighest(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 2 | Q13 | Bank Management System | Problem 1 (Sorting)
+// Selection sort, insertion sort with shift count, top 5.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Record {
+public:
+    int id;
+    char name[30];
+    float score;
+};
+
+class Ranking {
+public:
+    Record data[MAX];   // original list
+    Record temp[MAX];   // working copy used for sorting
+    int n;
+
+    Ranking() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Account No: ";
+            cin >> data[n].id;
+            cout << "Enter Name (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Balance: ";
+            cin >> data[n].score;
+            n++;
+        }
+    }
+
+    // copy the original list into temp so each sort starts fresh
+    void copyData() {
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+    }
+
+    // print the first 'count' records of temp
+    void show(int count) {
+        cout << "\nRank\tAccount No\tName\tBalance\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < count; i++) {
+            cout << i + 1 << "\t" << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].score << "\n";
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        show(n);
+    }
+
+    // sorts temp in descending order of score
+    void doSelectionSort() {
+        for (int i = 0; i < n - 1; i++) {
+            int max = i;
+            for (int j = i + 1; j < n; j++) {
+                if (temp[j].score > temp[max].score)
+                    max = j;
+            }
+            Record t = temp[i];
+            temp[i] = temp[max];
+            temp[max] = t;
+        }
+    }
+
+    // a. Selection sort (descending)
+    void selectionSort() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        doSelectionSort();
+        cout << "\nSELECTION SORT (descending)";
+        show(n);
+    }
+
+    // b. Insertion sort (descending) + count the shifts
+    void insertionSort() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        int shifts = 0;
+        for (int i = 1; i < n; i++) {
+            Record key = temp[i];
+            int j = i - 1;
+            while (j >= 0 && temp[j].score < key.score) {
+                temp[j + 1] = temp[j];     // shift right
+                shifts++;
+                j--;
+            }
+            temp[j + 1] = key;
+        }
+        cout << "\nINSERTION SORT (descending)";
+        show(n);
+        cout << "Number of shifts = " << shifts << "\n";
+    }
+
+    // c. Top 5
+    void top5() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        copyData();
+        doSelectionSort();
+        int count = 5;
+        if (n < 5)
+            count = n;
+        cout << "\nTOP 5 customers";
+        show(count);
+    }
+};
+
+int main() {
+    Ranking obj;
+    int choice;
+    do {
+        cout << "\n===== Customer Ranking =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display original list\n";
+        cout << "3. Selection sort (descending)\n";
+        cout << "4. Insertion sort (descending) and count shifts\n";
+        cout << "5. Display top 5 customers\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.selectionSort(); break;
+            case 4: obj.insertionSort(); break;
+            case 5: obj.top5(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}
+
+// PDF 2 | Q14 | Bank Management System | Problem 2 (Searching)
+// Linear search by name, binary search by ID, comparison counts.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+// returns true if both words are the same
+bool sameWord(char a[], char b[]) {
+    int i = 0;
+    while (a[i] != '\0' && a[i] == b[i])
+        i++;
+    return a[i] == b[i];
+}
+
+class Record {
+public:
+    int id;
+    char name[30];
+    char extra[30];
+};
+
+class Search {
+public:
+    Record data[MAX];
+    Record temp[MAX];
+    int n;
+
+    Search() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Account No: ";
+            cin >> data[n].id;
+            cout << "Enter Name (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Branch (one word): ";
+            cin >> data[n].extra;
+            n++;
+        }
+    }
+
+    void display() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        cout << "\nNo.\tAccount No\tName\tBranch\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << data[i].id << "\t" << data[i].name << "\t" << data[i].extra << "\n";
+        }
+    }
+
+    // a. Linear search by name
+    void linearSearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        char key[30];
+        cout << "Enter Name to search: ";
+        cin >> key;
+        int comparisons = 0;
+        int pos = -1;
+        for (int i = 0; i < n; i++) {
+            comparisons++;
+            if (sameWord(data[i].name, key)) {
+                pos = i;
+                break;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << data[pos].id << "\t" << data[pos].name << "\t" << data[pos].extra << "\n";
+        cout << "Number of comparisons (linear search) = " << comparisons << "\n";
+    }
+
+    // b. Binary search by ID (sort first)
+    void binarySearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        // copy and sort by ID (bubble sort)
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (temp[j].id > temp[j + 1].id) {
+                    Record t = temp[j];
+                    temp[j] = temp[j + 1];
+                    temp[j + 1] = t;
+                }
+            }
+        }
+        cout << "\nSorted by Account No:\n";
+        cout << "Account No\tName\tBranch\n";
+        cout << "----------------------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].extra << "\n";
+
+        int key;
+        cout << "\nEnter Account No to search: ";
+        cin >> key;
+        int low = 0, high = n - 1;
+        int comparisons = 0;
+        int pos = -1;
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            comparisons++;
+            if (temp[mid].id == key) {
+                pos = mid;
+                break;
+            } else if (temp[mid].id < key) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << temp[pos].id << "\t" << temp[pos].name << "\t" << temp[pos].extra << "\n";
+        cout << "Number of comparisons (binary search) = " << comparisons << "\n";
+    }
+};
+
+int main() {
+    Search obj;
+    int choice;
+    do {
+        cout << "\n===== Bank Customer Search =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display all records\n";
+        cout << "3. Linear search by Name\n";
+        cout << "4. Binary search by Account No (sorts first)\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.display(); break;
+            case 3: obj.linearSearch(); break;
+            case 4: obj.binarySearch(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 2 | Q14 | Bank Management System | Problem 2 (Searching)
+// Linear search by name, binary search by ID, comparison counts.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+// returns true if both words are the same
+bool sameWord(char a[], char b[]) {
+    int i = 0;
+    while (a[i] != '\0' && a[i] == b[i])
+        i++;
+    return a[i] == b[i];
+}
+
+class Record {
+public:
+    int id;
+    char name[30];
+    char extra[30];
+};
+
+class Search {
+public:
+    Record data[MAX];
+    Record temp[MAX];
+    int n;
+
+    Search() {
+        n = 0;
+    }
+
+    void addRecords() {
+        int k;
+        cout << "How many records to add? ";
+        cin >> k;
+        for (int i = 0; i < k && n < MAX; i++) {
+            cout << "--- Record " << n + 1 << " ---\n";
+            cout << "Enter Account No: ";
+            cin >> data[n].id;
+            cout << "Enter Name (one word): ";
+            cin >> data[n].name;
+            cout << "Enter Branch (one word): ";
+            cin >> data[n].extra;
+            n++;
+        }
+    }
+
+    void display() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        cout << "\nNo.\tAccount No\tName\tBranch\n";
+        cout << "----------------------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            cout << i + 1 << "\t" << data[i].id << "\t" << data[i].name << "\t" << data[i].extra << "\n";
+        }
+    }
+
+    // a. Linear search by name
+    void linearSearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        char key[30];
+        cout << "Enter Name to search: ";
+        cin >> key;
+        int comparisons = 0;
+        int pos = -1;
+        for (int i = 0; i < n; i++) {
+            comparisons++;
+            if (sameWord(data[i].name, key)) {
+                pos = i;
+                break;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << data[pos].id << "\t" << data[pos].name << "\t" << data[pos].extra << "\n";
+        cout << "Number of comparisons (linear search) = " << comparisons << "\n";
+    }
+
+    // b. Binary search by ID (sort first)
+    void binarySearch() {
+        if (n == 0) {
+            cout << "No records entered.\n";
+            return;
+        }
+        // copy and sort by ID (bubble sort)
+        for (int i = 0; i < n; i++)
+            temp[i] = data[i];
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (temp[j].id > temp[j + 1].id) {
+                    Record t = temp[j];
+                    temp[j] = temp[j + 1];
+                    temp[j + 1] = t;
+                }
+            }
+        }
+        cout << "\nSorted by Account No:\n";
+        cout << "Account No\tName\tBranch\n";
+        cout << "----------------------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << temp[i].id << "\t" << temp[i].name << "\t" << temp[i].extra << "\n";
+
+        int key;
+        cout << "\nEnter Account No to search: ";
+        cin >> key;
+        int low = 0, high = n - 1;
+        int comparisons = 0;
+        int pos = -1;
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            comparisons++;
+            if (temp[mid].id == key) {
+                pos = mid;
+                break;
+            } else if (temp[mid].id < key) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        if (pos == -1)
+            cout << "Record not found.\n";
+        else
+            cout << "Found: " << temp[pos].id << "\t" << temp[pos].name << "\t" << temp[pos].extra << "\n";
+        cout << "Number of comparisons (binary search) = " << comparisons << "\n";
+    }
+};
+
+int main() {
+    Search obj;
+    int choice;
+    do {
+        cout << "\n===== Bank Customer Search =====\n";
+        cout << "1. Add records\n";
+        cout << "2. Display all records\n";
+        cout << "3. Linear search by Name\n";
+        cout << "4. Binary search by Account No (sorts first)\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.addRecords(); break;
+            case 2: obj.display(); break;
+            case 3: obj.linearSearch(); break;
+            case 4: obj.binarySearch(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 2 | Q16 | Bank Management System | Problem 4 (Selection and Bubble Sort)
+// Selection and bubble sort ascending, five highest values.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 50;
+
+class Sorter {
+public:
+    float data[MAX];   // original values
+    float arr[MAX];    // copy that gets sorted
+    int n;
+
+    Sorter() {
+        n = 0;
+    }
+
+    void enter() {
+        cout << "How many values (max " << MAX << ")? ";
+        cin >> n;
+        if (n < 0 || n > MAX) {
+            n = 0;
+            cout << "Invalid count.\n";
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            cout << "Enter Transaction Amount " << i + 1 << ": ";
+            cin >> data[i];
+        }
+    }
+
+    void copyData() {
+        for (int i = 0; i < n; i++)
+            arr[i] = data[i];
+    }
+
+    void show(const char title[]) {
+        cout << "\n" << title << "\n";
+        cout << "Index\tTransaction Amount\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < n; i++)
+            cout << i << "\t" << arr[i] << "\n";
+    }
+
+    // sorts arr in ascending order (selection sort)
+    void doSelection() {
+        for (int i = 0; i < n - 1; i++) {
+            int min = i;
+            for (int j = i + 1; j < n; j++) {
+                if (arr[j] < arr[min])
+                    min = j;
+            }
+            float t = arr[i];
+            arr[i] = arr[min];
+            arr[min] = t;
+        }
+    }
+
+    // sorts arr in ascending order (bubble sort)
+    void doBubble() {
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    float t = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = t;
+                }
+            }
+        }
+    }
+
+    void showOriginal() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        show("ORIGINAL ARRAY");
+    }
+
+    // a. Selection sort
+    void selectionSort() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doSelection();
+        show("SELECTION SORT (ascending)");
+    }
+
+    // b. Bubble sort
+    void bubbleSort() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doBubble();
+        show("BUBBLE SORT (ascending)");
+    }
+
+    // display the five highest values
+    void fiveHighest() {
+        if (n == 0) {
+            cout << "No values entered.\n";
+            return;
+        }
+        copyData();
+        doBubble();
+        int count = 5;
+        if (n < 5)
+            count = n;
+        cout << "\nFIVE HIGHEST Transaction AmountS\n";
+        cout << "Rank\tTransaction Amount\n";
+        cout << "---------------------\n";
+        for (int i = 0; i < count; i++)
+            cout << i + 1 << "\t" << arr[n - 1 - i] << "\n";
+    }
+};
+
+int main() {
+    Sorter obj;
+    int choice;
+    do {
+        cout << "\n===== Transactions (Selection and Bubble Sort) =====\n";
+        cout << "1. Enter Transaction Amounts\n";
+        cout << "2. Display original array\n";
+        cout << "3. Selection sort (ascending)\n";
+        cout << "4. Bubble sort (ascending)\n";
+        cout << "5. Display the five highest Transaction Amounts\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enter(); break;
+            case 2: obj.showOriginal(); break;
+            case 3: obj.selectionSort(); break;
+            case 4: obj.bubbleSort(); break;
+            case 5: obj.fiveHighest(); break;
+            case 6: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 6);
+    return 0;
+}

@@ -1,0 +1,2455 @@
+// PDF 1 | Q21 | Library Management System | Part B Problem 1 (Stack)
+// Page navigation history using a stack.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 20;
+
+class History {
+public:
+    char url[MAX][50];   // stack of page names / URLs
+    int top;             // index of the top element
+
+    History() {
+        top = -1;
+    }
+
+    // a. Visit a new page (push)
+    void visit() {
+        if (top == MAX - 1) {
+            cout << "History is full.\n";
+            return;
+        }
+        top++;
+        cout << "Enter URL (no spaces): ";
+        cin >> url[top];
+        cout << "Visited: " << url[top] << "\n";
+    }
+
+    // b. Go back (pop)
+    void goBack() {
+        if (top <= 0) {
+            cout << "No previous page to go back to.\n";
+            return;
+        }
+        cout << "Leaving: " << url[top] << "\n";
+        top--;
+        cout << "Now on: " << url[top] << "\n";
+    }
+
+    // c. Display the current page (peek)
+    void current() {
+        if (top == -1) {
+            cout << "No page visited yet.\n";
+            return;
+        }
+        cout << "Current page: " << url[top] << "\n";
+    }
+
+    // d. Show the whole stack
+    void showStack() {
+        if (top == -1) {
+            cout << "Stack is empty.\n";
+            return;
+        }
+        cout << "\nPosition\tURL\n";
+        cout << "---------------------------\n";
+        for (int i = top; i >= 0; i--) {
+            cout << i + 1 << "\t\t" << url[i];
+            if (i == top)
+                cout << "   <-- TOP";
+            cout << "\n";
+        }
+    }
+};
+
+int main() {
+    History obj;
+    int choice;
+    do {
+        cout << "\n===== Online Library Catalogue History =====\n";
+        cout << "1. Visit a new page (push URL)\n";
+        cout << "2. Go back to the previous page (pop URL)\n";
+        cout << "3. Display the current page\n";
+        cout << "4. Show the entire browsing history stack\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.visit(); break;
+            case 2: obj.goBack(); break;
+            case 3: obj.current(); break;
+            case 4: obj.showStack(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q22 | Library Management System | Part B Problem 2 (Stack)
+// Convert infix to postfix and evaluate it.
+
+#include <iostream>
+using namespace std;
+
+// Variables are single CAPITAL letters (A-Z). Digits 0-9 are used as numbers.
+// Type the expression without spaces, e.g. (D*R)+C-W
+
+// priority of an operator
+int priority(char c) {
+    if (c == '*' || c == '/')
+        return 2;
+    if (c == '+' || c == '-')
+        return 1;
+    return 0;
+}
+
+bool isOperand(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+}
+
+class Expression {
+public:
+    char infix[50];
+    char postfix[50];
+    double value[26];    // value of each variable A-Z
+    bool known[26];      // has the value been entered?
+    bool converted;
+
+    Expression() {
+        converted = false;
+        infix[0] = '\0';
+        postfix[0] = '\0';
+        for (int i = 0; i < 26; i++)
+            known[i] = false;
+    }
+
+    void readInfix() {
+        cout << "Example: (D*R)+F-W   (D=Days, R=Rate, F=Fixed, W=Waiver)\n";
+        cout << "Enter infix expression (no spaces): ";
+        cin >> infix;
+        converted = false;
+    }
+
+    // print the operator stack
+    void showOps(char st[], int top) {
+        for (int i = 0; i <= top; i++)
+            cout << st[i] << " ";
+    }
+
+    // Infix to Postfix using a stack
+    void convert() {
+        if (infix[0] == '\0') {
+            cout << "Please enter the infix expression first.\n";
+            return;
+        }
+        char st[50];     // operator stack
+        int top = -1;
+        int j = 0;       // index in postfix
+
+        for (int i = 0; infix[i] != '\0'; i++) {
+            char c = infix[i];
+            if (isOperand(c)) {
+                postfix[j++] = c;                      // operand goes straight to output
+            } else if (c == '(') {
+                st[++top] = c;
+            } else if (c == ')') {
+                while (top >= 0 && st[top] != '(')
+                    postfix[j++] = st[top--];          // pop until '('
+                top--;                                 // remove '('
+            } else {                                   // operator
+                while (top >= 0 && priority(st[top]) >= priority(c))
+                    postfix[j++] = st[top--];
+                st[++top] = c;
+            }
+            postfix[j] = '\0';
+
+        }
+        while (top >= 0)                               // pop the remaining operators
+            postfix[j++] = st[top--];
+        postfix[j] = '\0';
+
+        converted = true;
+        cout << "\nInfix   : " << infix << "\n";
+        cout << "Postfix : " << postfix << "\n";
+    }
+
+    // Evaluate the postfix expression using a stack
+    void evaluate() {
+        if (!converted) {
+            cout << "Convert the expression to postfix first.\n";
+            return;
+        }
+        double st[50];   // value stack
+        int top = -1;
+
+        for (int i = 0; postfix[i] != '\0'; i++) {
+            char c = postfix[i];
+            if (c >= 'A' && c <= 'Z') {
+                int k = c - 'A';
+                if (!known[k]) {
+                    cout << "Enter value of " << c << ": ";
+                    cin >> value[k];
+                    known[k] = true;
+                }
+                st[++top] = value[k];
+            } else if (c >= '0' && c <= '9') {
+                st[++top] = c - '0';
+            } else {
+                double b = st[top--];                  // second operand
+                double a = st[top--];                  // first operand
+                if (c == '+') st[++top] = a + b;
+                if (c == '-') st[++top] = a - b;
+                if (c == '*') st[++top] = a * b;
+                if (c == '/') {
+                    if (b == 0) {
+                        cout << "Division by zero!\n";
+                        return;
+                    }
+                    st[++top] = a / b;
+                }
+            }
+
+        }
+        cout << "\nResult = " << st[top] << "\n";
+    }
+};
+
+int main() {
+    Expression obj;
+    int choice;
+    do {
+        cout << "\n===== Late Fine Calculation =====\n";
+        cout << "1. Enter the infix expression\n";
+        cout << "2. Convert infix to postfix\n";
+        cout << "3. Evaluate the postfix expression\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readInfix(); break;
+            case 2: obj.convert(); break;
+            case 3:
+                for (int i = 0; i < 26; i++)
+                    obj.known[i] = false;      // ask for fresh values
+                obj.evaluate();
+                break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 1 | Q23 | Library Management System | Part B Problem 3 (Stack)
+// Check balanced parentheses using a stack.
+
+#include <iostream>
+using namespace std;
+
+class ParenChecker {
+public:
+    char expr[100];
+    bool entered;
+
+    ParenChecker() {
+        entered = false;
+    }
+
+    void readExpr() {
+        cout << "Enter the book-search query expression (no spaces): ";
+        cin >> expr;
+        entered = true;
+    }
+
+    void check() {
+        if (!entered) {
+            cout << "Please enter the expression first.\n";
+            return;
+        }
+        char st[100];    // stack of opening brackets
+        int top = -1;
+        bool ok = true;
+
+        cout << "\nSymbol\tAction\t\tStack\n";
+        cout << "-------------------------------\n";
+        for (int i = 0; expr[i] != '\0' && ok; i++) {
+            char c = expr[i];
+            if (c == '(' || c == '[' || c == '{') {
+                st[++top] = c;
+                cout << c << "\tPush\t\t";
+            } else if (c == ')' || c == ']' || c == '}') {
+                if (top == -1) {
+                    cout << c << "\tNo match\t\n";
+                    ok = false;
+                    break;
+                }
+                char open = st[top];
+                if ((c == ')' && open == '(') || (c == ']' && open == '[') || (c == '}' && open == '{')) {
+                    top--;
+                    cout << c << "\tPop\t\t";
+                } else {
+                    cout << c << "\tMismatch\t\n";
+                    ok = false;
+                    break;
+                }
+            } else {
+                continue;    // ignore other characters
+            }
+            for (int k = 0; k <= top; k++)
+                cout << st[k] << " ";
+            cout << "\n";
+        }
+        if (top != -1)
+            ok = false;      // some opening brackets are left
+
+        cout << "\nExpression: " << expr << "\n";
+        if (ok)
+            cout << "Result: BALANCED\n";
+        else
+            cout << "Result: NOT BALANCED\n";
+    }
+};
+
+int main() {
+    ParenChecker obj;
+    int choice;
+    do {
+        cout << "\n===== Balanced Parentheses Check =====\n";
+        cout << "1. Enter the expression\n";
+        cout << "2. Check balanced parentheses\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readExpr(); break;
+            case 2: obj.check(); break;
+            case 3: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 3);
+    return 0;
+}
+
+// PDF 1 | Q24 | Library Management System | Part B Problem 4 (Stack)
+// Billing: infix to postfix, evaluation, stack contents shown.
+
+#include <iostream>
+using namespace std;
+
+// Variables are single CAPITAL letters (A-Z). Digits 0-9 are used as numbers.
+// Type the expression without spaces, e.g. (D*R)+C-W
+
+// priority of an operator
+int priority(char c) {
+    if (c == '*' || c == '/')
+        return 2;
+    if (c == '+' || c == '-')
+        return 1;
+    return 0;
+}
+
+bool isOperand(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+}
+
+class Expression {
+public:
+    char infix[50];
+    char postfix[50];
+    double value[26];    // value of each variable A-Z
+    bool known[26];      // has the value been entered?
+    bool converted;
+
+    Expression() {
+        converted = false;
+        infix[0] = '\0';
+        postfix[0] = '\0';
+        for (int i = 0; i < 26; i++)
+            known[i] = false;
+    }
+
+    void readInfix() {
+        cout << "Example: (D*R)+C-W\n";
+        cout << "Enter infix expression (no spaces): ";
+        cin >> infix;
+        converted = false;
+    }
+
+    // print the operator stack
+    void showOps(char st[], int top) {
+        for (int i = 0; i <= top; i++)
+            cout << st[i] << " ";
+    }
+
+    // Infix to Postfix using a stack
+    void convert() {
+        if (infix[0] == '\0') {
+            cout << "Please enter the infix expression first.\n";
+            return;
+        }
+        char st[50];     // operator stack
+        int top = -1;
+        int j = 0;       // index in postfix
+        cout << "\nSymbol\tOperator Stack\tPostfix so far\n";
+        cout << "-------------------------------------------\n";
+        for (int i = 0; infix[i] != '\0'; i++) {
+            char c = infix[i];
+            if (isOperand(c)) {
+                postfix[j++] = c;                      // operand goes straight to output
+            } else if (c == '(') {
+                st[++top] = c;
+            } else if (c == ')') {
+                while (top >= 0 && st[top] != '(')
+                    postfix[j++] = st[top--];          // pop until '('
+                top--;                                 // remove '('
+            } else {                                   // operator
+                while (top >= 0 && priority(st[top]) >= priority(c))
+                    postfix[j++] = st[top--];
+                st[++top] = c;
+            }
+            postfix[j] = '\0';
+            cout << c << "\t";
+            showOps(st, top);
+            cout << "\t\t" << postfix << "\n";
+        }
+        while (top >= 0)                               // pop the remaining operators
+            postfix[j++] = st[top--];
+        postfix[j] = '\0';
+        cout << "(end)\t";
+        showOps(st, top);
+        cout << "\t\t" << postfix << "\n";
+        converted = true;
+        cout << "\nInfix   : " << infix << "\n";
+        cout << "Postfix : " << postfix << "\n";
+    }
+
+    // Evaluate the postfix expression using a stack
+    void evaluate() {
+        if (!converted) {
+            cout << "Convert the expression to postfix first.\n";
+            return;
+        }
+        double st[50];   // value stack
+        int top = -1;
+        cout << "\nSymbol\tValue Stack\n";
+        cout << "---------------------------\n";
+        for (int i = 0; postfix[i] != '\0'; i++) {
+            char c = postfix[i];
+            if (c >= 'A' && c <= 'Z') {
+                int k = c - 'A';
+                if (!known[k]) {
+                    cout << "Enter value of " << c << ": ";
+                    cin >> value[k];
+                    known[k] = true;
+                }
+                st[++top] = value[k];
+            } else if (c >= '0' && c <= '9') {
+                st[++top] = c - '0';
+            } else {
+                double b = st[top--];                  // second operand
+                double a = st[top--];                  // first operand
+                if (c == '+') st[++top] = a + b;
+                if (c == '-') st[++top] = a - b;
+                if (c == '*') st[++top] = a * b;
+                if (c == '/') {
+                    if (b == 0) {
+                        cout << "Division by zero!\n";
+                        return;
+                    }
+                    st[++top] = a / b;
+                }
+            }
+            cout << c << "\t";
+            for (int m = 0; m <= top; m++)
+                cout << st[m] << " ";
+            cout << "\n";
+        }
+        cout << "\nFinal Payable Fine = " << st[top] << "\n";
+    }
+
+    // d. Accept the values
+    void acceptValues() {
+        cout << "Enter LateDays (D): ";
+        cin >> value['D' - 'A'];
+        known['D' - 'A'] = true;
+        cout << "Enter DailyRate (R): ";
+        cin >> value['R' - 'A'];
+        known['R' - 'A'] = true;
+        cout << "Enter DamageCharge (C): ";
+        cin >> value['C' - 'A'];
+        known['C' - 'A'] = true;
+        cout << "Enter Waiver (W): ";
+        cin >> value['W' - 'A'];
+        known['W' - 'A'] = true;
+    }
+};
+
+int main() {
+    Expression obj;
+    int choice;
+    do {
+        cout << "\n===== Library Fine Billing System =====\n";
+        cout << "Letters used: D=LateDays, R=DailyRate, C=DamageCharge, W=Waiver\n";
+        cout << "1. Read the formula in infix form\n";
+        cout << "2. Convert to postfix and display it (shows stack)\n";
+        cout << "3. Accept values for LateDays, DailyRate, DamageCharge, Waiver\n";
+        cout << "4. Evaluate postfix (shows stack) and display Final Payable Fine\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readInfix(); break;
+            case 2: obj.convert(); break;
+            case 3: obj.acceptValues(); break;
+            case 4: obj.evaluate(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q25 | Library Management System | Part B Problem 5 (Queue)
+// Enqueue, dequeue, front and rear, display.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 10;
+
+class TokenQueue {
+public:
+    int q[MAX];
+    int front;   // index of the first element
+    int rear;    // index of the last element
+
+    TokenQueue() {
+        front = 0;
+        rear = -1;
+    }
+
+    // a. Enqueue
+    void enqueue() {
+        if (rear == MAX - 1) {
+            cout << "Queue is full.\n";
+            return;
+        }
+        int t;
+        cout << "Enter Token No: ";
+        cin >> t;
+        rear++;
+        q[rear] = t;
+        cout << "Added to the queue.\n";
+    }
+
+    // b. Dequeue
+    void dequeue() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "Now serving token: " << q[front] << "\n";
+        front++;
+        if (front > rear) {      // queue became empty, reset it
+            front = 0;
+            rear = -1;
+        }
+    }
+
+    // c. Front and rear
+    void showFrontRear() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "Front Token No : " << q[front] << "\n";
+        cout << "Rear Token No  : " << q[rear] << "\n";
+    }
+
+    // d. Display the queue
+    void display() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "\nPosition\tToken No\n";
+        cout << "-------------------------\n";
+        for (int i = front; i <= rear; i++) {
+            cout << i - front + 1 << "\t\t" << q[i];
+            if (i == front)
+                cout << "   <-- FRONT";
+            if (i == rear)
+                cout << "   <-- REAR";
+            cout << "\n";
+        }
+    }
+};
+
+int main() {
+    TokenQueue obj;
+    int choice;
+    do {
+        cout << "\n===== Book Issue Counter Queue =====\n";
+        cout << "1. Enqueue Token No\n";
+        cout << "2. Dequeue and display the member being served\n";
+        cout << "3. Display front and rear Token Nos\n";
+        cout << "4. Display the complete queue\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enqueue(); break;
+            case 2: obj.dequeue(); break;
+            case 3: obj.showFrontRear(); break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q26 | Hospital Management System | Part B Problem 1 (Stack)
+// Page navigation history using a stack.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 20;
+
+class History {
+public:
+    char url[MAX][50];   // stack of page names / URLs
+    int top;             // index of the top element
+
+    History() {
+        top = -1;
+    }
+
+    // a. Visit a new page (push)
+    void visit() {
+        if (top == MAX - 1) {
+            cout << "History is full.\n";
+            return;
+        }
+        top++;
+        cout << "Enter URL (no spaces): ";
+        cin >> url[top];
+        cout << "Visited: " << url[top] << "\n";
+    }
+
+    // b. Go back (pop)
+    void goBack() {
+        if (top <= 0) {
+            cout << "No previous page to go back to.\n";
+            return;
+        }
+        cout << "Leaving: " << url[top] << "\n";
+        top--;
+        cout << "Now on: " << url[top] << "\n";
+    }
+
+    // c. Display the current page (peek)
+    void current() {
+        if (top == -1) {
+            cout << "No page visited yet.\n";
+            return;
+        }
+        cout << "Current page: " << url[top] << "\n";
+    }
+
+    // d. Show the whole stack
+    void showStack() {
+        if (top == -1) {
+            cout << "Stack is empty.\n";
+            return;
+        }
+        cout << "\nPosition\tURL\n";
+        cout << "---------------------------\n";
+        for (int i = top; i >= 0; i--) {
+            cout << i + 1 << "\t\t" << url[i];
+            if (i == top)
+                cout << "   <-- TOP";
+            cout << "\n";
+        }
+    }
+};
+
+int main() {
+    History obj;
+    int choice;
+    do {
+        cout << "\n===== Hospital Patient Portal History =====\n";
+        cout << "1. Visit a new page (push URL)\n";
+        cout << "2. Go back to the previous page (pop URL)\n";
+        cout << "3. Display the current page\n";
+        cout << "4. Show the entire browsing history stack\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.visit(); break;
+            case 2: obj.goBack(); break;
+            case 3: obj.current(); break;
+            case 4: obj.showStack(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q27 | Hospital Management System | Part B Problem 2 (Stack)
+// Convert infix to postfix and evaluate it.
+
+#include <iostream>
+using namespace std;
+
+// Variables are single CAPITAL letters (A-Z). Digits 0-9 are used as numbers.
+// Type the expression without spaces, e.g. (D*R)+C-W
+
+// priority of an operator
+int priority(char c) {
+    if (c == '*' || c == '/')
+        return 2;
+    if (c == '+' || c == '-')
+        return 1;
+    return 0;
+}
+
+bool isOperand(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+}
+
+class Expression {
+public:
+    char infix[50];
+    char postfix[50];
+    double value[26];    // value of each variable A-Z
+    bool known[26];      // has the value been entered?
+    bool converted;
+
+    Expression() {
+        converted = false;
+        infix[0] = '\0';
+        postfix[0] = '\0';
+        for (int i = 0; i < 26; i++)
+            known[i] = false;
+    }
+
+    void readInfix() {
+        cout << "Example: (C+M)*D-I   (C=Consultation, M=Medicine, D=Days, I=Insurance)\n";
+        cout << "Enter infix expression (no spaces): ";
+        cin >> infix;
+        converted = false;
+    }
+
+    // print the operator stack
+    void showOps(char st[], int top) {
+        for (int i = 0; i <= top; i++)
+            cout << st[i] << " ";
+    }
+
+    // Infix to Postfix using a stack
+    void convert() {
+        if (infix[0] == '\0') {
+            cout << "Please enter the infix expression first.\n";
+            return;
+        }
+        char st[50];     // operator stack
+        int top = -1;
+        int j = 0;       // index in postfix
+
+        for (int i = 0; infix[i] != '\0'; i++) {
+            char c = infix[i];
+            if (isOperand(c)) {
+                postfix[j++] = c;                      // operand goes straight to output
+            } else if (c == '(') {
+                st[++top] = c;
+            } else if (c == ')') {
+                while (top >= 0 && st[top] != '(')
+                    postfix[j++] = st[top--];          // pop until '('
+                top--;                                 // remove '('
+            } else {                                   // operator
+                while (top >= 0 && priority(st[top]) >= priority(c))
+                    postfix[j++] = st[top--];
+                st[++top] = c;
+            }
+            postfix[j] = '\0';
+
+        }
+        while (top >= 0)                               // pop the remaining operators
+            postfix[j++] = st[top--];
+        postfix[j] = '\0';
+
+        converted = true;
+        cout << "\nInfix   : " << infix << "\n";
+        cout << "Postfix : " << postfix << "\n";
+    }
+
+    // Evaluate the postfix expression using a stack
+    void evaluate() {
+        if (!converted) {
+            cout << "Convert the expression to postfix first.\n";
+            return;
+        }
+        double st[50];   // value stack
+        int top = -1;
+
+        for (int i = 0; postfix[i] != '\0'; i++) {
+            char c = postfix[i];
+            if (c >= 'A' && c <= 'Z') {
+                int k = c - 'A';
+                if (!known[k]) {
+                    cout << "Enter value of " << c << ": ";
+                    cin >> value[k];
+                    known[k] = true;
+                }
+                st[++top] = value[k];
+            } else if (c >= '0' && c <= '9') {
+                st[++top] = c - '0';
+            } else {
+                double b = st[top--];                  // second operand
+                double a = st[top--];                  // first operand
+                if (c == '+') st[++top] = a + b;
+                if (c == '-') st[++top] = a - b;
+                if (c == '*') st[++top] = a * b;
+                if (c == '/') {
+                    if (b == 0) {
+                        cout << "Division by zero!\n";
+                        return;
+                    }
+                    st[++top] = a / b;
+                }
+            }
+
+        }
+        cout << "\nResult = " << st[top] << "\n";
+    }
+};
+
+int main() {
+    Expression obj;
+    int choice;
+    do {
+        cout << "\n===== Hospital Bill Calculation =====\n";
+        cout << "1. Enter the infix expression\n";
+        cout << "2. Convert infix to postfix\n";
+        cout << "3. Evaluate the postfix expression\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readInfix(); break;
+            case 2: obj.convert(); break;
+            case 3:
+                for (int i = 0; i < 26; i++)
+                    obj.known[i] = false;      // ask for fresh values
+                obj.evaluate();
+                break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 1 | Q28 | Hospital Management System | Part B Problem 3 (Stack)
+// Check balanced parentheses using a stack.
+
+#include <iostream>
+using namespace std;
+
+class ParenChecker {
+public:
+    char expr[100];
+    bool entered;
+
+    ParenChecker() {
+        entered = false;
+    }
+
+    void readExpr() {
+        cout << "Enter the medical dosage formula (no spaces): ";
+        cin >> expr;
+        entered = true;
+    }
+
+    void check() {
+        if (!entered) {
+            cout << "Please enter the expression first.\n";
+            return;
+        }
+        char st[100];    // stack of opening brackets
+        int top = -1;
+        bool ok = true;
+
+        cout << "\nSymbol\tAction\t\tStack\n";
+        cout << "-------------------------------\n";
+        for (int i = 0; expr[i] != '\0' && ok; i++) {
+            char c = expr[i];
+            if (c == '(' || c == '[' || c == '{') {
+                st[++top] = c;
+                cout << c << "\tPush\t\t";
+            } else if (c == ')' || c == ']' || c == '}') {
+                if (top == -1) {
+                    cout << c << "\tNo match\t\n";
+                    ok = false;
+                    break;
+                }
+                char open = st[top];
+                if ((c == ')' && open == '(') || (c == ']' && open == '[') || (c == '}' && open == '{')) {
+                    top--;
+                    cout << c << "\tPop\t\t";
+                } else {
+                    cout << c << "\tMismatch\t\n";
+                    ok = false;
+                    break;
+                }
+            } else {
+                continue;    // ignore other characters
+            }
+            for (int k = 0; k <= top; k++)
+                cout << st[k] << " ";
+            cout << "\n";
+        }
+        if (top != -1)
+            ok = false;      // some opening brackets are left
+
+        cout << "\nExpression: " << expr << "\n";
+        if (ok)
+            cout << "Result: BALANCED\n";
+        else
+            cout << "Result: NOT BALANCED\n";
+    }
+};
+
+int main() {
+    ParenChecker obj;
+    int choice;
+    do {
+        cout << "\n===== Balanced Parentheses Check =====\n";
+        cout << "1. Enter the expression\n";
+        cout << "2. Check balanced parentheses\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readExpr(); break;
+            case 2: obj.check(); break;
+            case 3: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 3);
+    return 0;
+}
+
+// PDF 1 | Q29 | Hospital Management System | Part B Problem 4 (Stack)
+// Billing: infix to postfix, evaluation, stack contents shown.
+
+#include <iostream>
+using namespace std;
+
+// Variables are single CAPITAL letters (A-Z). Digits 0-9 are used as numbers.
+// Type the expression without spaces, e.g. (D*R)+C-W
+
+// priority of an operator
+int priority(char c) {
+    if (c == '*' || c == '/')
+        return 2;
+    if (c == '+' || c == '-')
+        return 1;
+    return 0;
+}
+
+bool isOperand(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+}
+
+class Expression {
+public:
+    char infix[50];
+    char postfix[50];
+    double value[26];    // value of each variable A-Z
+    bool known[26];      // has the value been entered?
+    bool converted;
+
+    Expression() {
+        converted = false;
+        infix[0] = '\0';
+        postfix[0] = '\0';
+        for (int i = 0; i < 26; i++)
+            known[i] = false;
+    }
+
+    void readInfix() {
+        cout << "Example: C+R+M-I\n";
+        cout << "Enter infix expression (no spaces): ";
+        cin >> infix;
+        converted = false;
+    }
+
+    // print the operator stack
+    void showOps(char st[], int top) {
+        for (int i = 0; i <= top; i++)
+            cout << st[i] << " ";
+    }
+
+    // Infix to Postfix using a stack
+    void convert() {
+        if (infix[0] == '\0') {
+            cout << "Please enter the infix expression first.\n";
+            return;
+        }
+        char st[50];     // operator stack
+        int top = -1;
+        int j = 0;       // index in postfix
+        cout << "\nSymbol\tOperator Stack\tPostfix so far\n";
+        cout << "-------------------------------------------\n";
+        for (int i = 0; infix[i] != '\0'; i++) {
+            char c = infix[i];
+            if (isOperand(c)) {
+                postfix[j++] = c;                      // operand goes straight to output
+            } else if (c == '(') {
+                st[++top] = c;
+            } else if (c == ')') {
+                while (top >= 0 && st[top] != '(')
+                    postfix[j++] = st[top--];          // pop until '('
+                top--;                                 // remove '('
+            } else {                                   // operator
+                while (top >= 0 && priority(st[top]) >= priority(c))
+                    postfix[j++] = st[top--];
+                st[++top] = c;
+            }
+            postfix[j] = '\0';
+            cout << c << "\t";
+            showOps(st, top);
+            cout << "\t\t" << postfix << "\n";
+        }
+        while (top >= 0)                               // pop the remaining operators
+            postfix[j++] = st[top--];
+        postfix[j] = '\0';
+        cout << "(end)\t";
+        showOps(st, top);
+        cout << "\t\t" << postfix << "\n";
+        converted = true;
+        cout << "\nInfix   : " << infix << "\n";
+        cout << "Postfix : " << postfix << "\n";
+    }
+
+    // Evaluate the postfix expression using a stack
+    void evaluate() {
+        if (!converted) {
+            cout << "Convert the expression to postfix first.\n";
+            return;
+        }
+        double st[50];   // value stack
+        int top = -1;
+        cout << "\nSymbol\tValue Stack\n";
+        cout << "---------------------------\n";
+        for (int i = 0; postfix[i] != '\0'; i++) {
+            char c = postfix[i];
+            if (c >= 'A' && c <= 'Z') {
+                int k = c - 'A';
+                if (!known[k]) {
+                    cout << "Enter value of " << c << ": ";
+                    cin >> value[k];
+                    known[k] = true;
+                }
+                st[++top] = value[k];
+            } else if (c >= '0' && c <= '9') {
+                st[++top] = c - '0';
+            } else {
+                double b = st[top--];                  // second operand
+                double a = st[top--];                  // first operand
+                if (c == '+') st[++top] = a + b;
+                if (c == '-') st[++top] = a - b;
+                if (c == '*') st[++top] = a * b;
+                if (c == '/') {
+                    if (b == 0) {
+                        cout << "Division by zero!\n";
+                        return;
+                    }
+                    st[++top] = a / b;
+                }
+            }
+            cout << c << "\t";
+            for (int m = 0; m <= top; m++)
+                cout << st[m] << " ";
+            cout << "\n";
+        }
+        cout << "\nFinal Payable Bill = " << st[top] << "\n";
+    }
+
+    // d. Accept the values
+    void acceptValues() {
+        cout << "Enter Consultation (C): ";
+        cin >> value['C' - 'A'];
+        known['C' - 'A'] = true;
+        cout << "Enter RoomCharge (R): ";
+        cin >> value['R' - 'A'];
+        known['R' - 'A'] = true;
+        cout << "Enter Medicine (M): ";
+        cin >> value['M' - 'A'];
+        known['M' - 'A'] = true;
+        cout << "Enter Insurance (I): ";
+        cin >> value['I' - 'A'];
+        known['I' - 'A'] = true;
+    }
+};
+
+int main() {
+    Expression obj;
+    int choice;
+    do {
+        cout << "\n===== Hospital Billing System =====\n";
+        cout << "Letters used: C=Consultation, R=RoomCharge, M=Medicine, I=Insurance\n";
+        cout << "1. Read the formula in infix form\n";
+        cout << "2. Convert to postfix and display it (shows stack)\n";
+        cout << "3. Accept values for Consultation, RoomCharge, Medicine, Insurance\n";
+        cout << "4. Evaluate postfix (shows stack) and display Final Payable Bill\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readInfix(); break;
+            case 2: obj.convert(); break;
+            case 3: obj.acceptValues(); break;
+            case 4: obj.evaluate(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q30 | Hospital Management System | Part B Problem 5 (Queue)
+// Enqueue, dequeue, front and rear, display.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 10;
+
+class TokenQueue {
+public:
+    int q[MAX];
+    int front;   // index of the first element
+    int rear;    // index of the last element
+
+    TokenQueue() {
+        front = 0;
+        rear = -1;
+    }
+
+    // a. Enqueue
+    void enqueue() {
+        if (rear == MAX - 1) {
+            cout << "Queue is full.\n";
+            return;
+        }
+        int t;
+        cout << "Enter Token No: ";
+        cin >> t;
+        rear++;
+        q[rear] = t;
+        cout << "Added to the queue.\n";
+    }
+
+    // b. Dequeue
+    void dequeue() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "Calling token: " << q[front] << "\n";
+        front++;
+        if (front > rear) {      // queue became empty, reset it
+            front = 0;
+            rear = -1;
+        }
+    }
+
+    // c. Front and rear
+    void showFrontRear() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "Front Token No : " << q[front] << "\n";
+        cout << "Rear Token No  : " << q[rear] << "\n";
+    }
+
+    // d. Display the queue
+    void display() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "\nPosition\tToken No\n";
+        cout << "-------------------------\n";
+        for (int i = front; i <= rear; i++) {
+            cout << i - front + 1 << "\t\t" << q[i];
+            if (i == front)
+                cout << "   <-- FRONT";
+            if (i == rear)
+                cout << "   <-- REAR";
+            cout << "\n";
+        }
+    }
+};
+
+int main() {
+    TokenQueue obj;
+    int choice;
+    do {
+        cout << "\n===== OPD Queue =====\n";
+        cout << "1. Enqueue Token No\n";
+        cout << "2. Dequeue and display the patient being called\n";
+        cout << "3. Display front and rear Token Nos\n";
+        cout << "4. Display the complete queue\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enqueue(); break;
+            case 2: obj.dequeue(); break;
+            case 3: obj.showFrontRear(); break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q31 | Inventory and Warehouse System | Part B Problem 1 (Stack)
+// Page navigation history using a stack.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 20;
+
+class History {
+public:
+    char url[MAX][50];   // stack of page names / URLs
+    int top;             // index of the top element
+
+    History() {
+        top = -1;
+    }
+
+    // a. Visit a new page (push)
+    void visit() {
+        if (top == MAX - 1) {
+            cout << "History is full.\n";
+            return;
+        }
+        top++;
+        cout << "Enter URL (no spaces): ";
+        cin >> url[top];
+        cout << "Visited: " << url[top] << "\n";
+    }
+
+    // b. Go back (pop)
+    void goBack() {
+        if (top <= 0) {
+            cout << "No previous page to go back to.\n";
+            return;
+        }
+        cout << "Leaving: " << url[top] << "\n";
+        top--;
+        cout << "Now on: " << url[top] << "\n";
+    }
+
+    // c. Display the current page (peek)
+    void current() {
+        if (top == -1) {
+            cout << "No page visited yet.\n";
+            return;
+        }
+        cout << "Current page: " << url[top] << "\n";
+    }
+
+    // d. Show the whole stack
+    void showStack() {
+        if (top == -1) {
+            cout << "Stack is empty.\n";
+            return;
+        }
+        cout << "\nPosition\tURL\n";
+        cout << "---------------------------\n";
+        for (int i = top; i >= 0; i--) {
+            cout << i + 1 << "\t\t" << url[i];
+            if (i == top)
+                cout << "   <-- TOP";
+            cout << "\n";
+        }
+    }
+};
+
+int main() {
+    History obj;
+    int choice;
+    do {
+        cout << "\n===== Warehouse Management Portal History =====\n";
+        cout << "1. Visit a new page (push URL)\n";
+        cout << "2. Go back to the previous page (pop URL)\n";
+        cout << "3. Display the current page\n";
+        cout << "4. Show the entire browsing history stack\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.visit(); break;
+            case 2: obj.goBack(); break;
+            case 3: obj.current(); break;
+            case 4: obj.showStack(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q32 | Inventory and Warehouse System | Part B Problem 2 (Stack)
+// Convert infix to postfix and evaluate it.
+
+#include <iostream>
+using namespace std;
+
+// Variables are single CAPITAL letters (A-Z). Digits 0-9 are used as numbers.
+// Type the expression without spaces, e.g. (D*R)+C-W
+
+// priority of an operator
+int priority(char c) {
+    if (c == '*' || c == '/')
+        return 2;
+    if (c == '+' || c == '-')
+        return 1;
+    return 0;
+}
+
+bool isOperand(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+}
+
+class Expression {
+public:
+    char infix[50];
+    char postfix[50];
+    double value[26];    // value of each variable A-Z
+    bool known[26];      // has the value been entered?
+    bool converted;
+
+    Expression() {
+        converted = false;
+        infix[0] = '\0';
+        postfix[0] = '\0';
+        for (int i = 0; i < 26; i++)
+            known[i] = false;
+    }
+
+    void readInfix() {
+        cout << "Example: (C*Q)+S-D   (C=Cost, Q=Qty, S=Shipping, D=Discount)\n";
+        cout << "Enter infix expression (no spaces): ";
+        cin >> infix;
+        converted = false;
+    }
+
+    // print the operator stack
+    void showOps(char st[], int top) {
+        for (int i = 0; i <= top; i++)
+            cout << st[i] << " ";
+    }
+
+    // Infix to Postfix using a stack
+    void convert() {
+        if (infix[0] == '\0') {
+            cout << "Please enter the infix expression first.\n";
+            return;
+        }
+        char st[50];     // operator stack
+        int top = -1;
+        int j = 0;       // index in postfix
+
+        for (int i = 0; infix[i] != '\0'; i++) {
+            char c = infix[i];
+            if (isOperand(c)) {
+                postfix[j++] = c;                      // operand goes straight to output
+            } else if (c == '(') {
+                st[++top] = c;
+            } else if (c == ')') {
+                while (top >= 0 && st[top] != '(')
+                    postfix[j++] = st[top--];          // pop until '('
+                top--;                                 // remove '('
+            } else {                                   // operator
+                while (top >= 0 && priority(st[top]) >= priority(c))
+                    postfix[j++] = st[top--];
+                st[++top] = c;
+            }
+            postfix[j] = '\0';
+
+        }
+        while (top >= 0)                               // pop the remaining operators
+            postfix[j++] = st[top--];
+        postfix[j] = '\0';
+
+        converted = true;
+        cout << "\nInfix   : " << infix << "\n";
+        cout << "Postfix : " << postfix << "\n";
+    }
+
+    // Evaluate the postfix expression using a stack
+    void evaluate() {
+        if (!converted) {
+            cout << "Convert the expression to postfix first.\n";
+            return;
+        }
+        double st[50];   // value stack
+        int top = -1;
+
+        for (int i = 0; postfix[i] != '\0'; i++) {
+            char c = postfix[i];
+            if (c >= 'A' && c <= 'Z') {
+                int k = c - 'A';
+                if (!known[k]) {
+                    cout << "Enter value of " << c << ": ";
+                    cin >> value[k];
+                    known[k] = true;
+                }
+                st[++top] = value[k];
+            } else if (c >= '0' && c <= '9') {
+                st[++top] = c - '0';
+            } else {
+                double b = st[top--];                  // second operand
+                double a = st[top--];                  // first operand
+                if (c == '+') st[++top] = a + b;
+                if (c == '-') st[++top] = a - b;
+                if (c == '*') st[++top] = a * b;
+                if (c == '/') {
+                    if (b == 0) {
+                        cout << "Division by zero!\n";
+                        return;
+                    }
+                    st[++top] = a / b;
+                }
+            }
+
+        }
+        cout << "\nResult = " << st[top] << "\n";
+    }
+};
+
+int main() {
+    Expression obj;
+    int choice;
+    do {
+        cout << "\n===== Price Calculation =====\n";
+        cout << "1. Enter the infix expression\n";
+        cout << "2. Convert infix to postfix\n";
+        cout << "3. Evaluate the postfix expression\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readInfix(); break;
+            case 2: obj.convert(); break;
+            case 3:
+                for (int i = 0; i < 26; i++)
+                    obj.known[i] = false;      // ask for fresh values
+                obj.evaluate();
+                break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 1 | Q33 | Inventory and Warehouse System | Part B Problem 3 (Stack)
+// Check balanced parentheses using a stack.
+
+#include <iostream>
+using namespace std;
+
+class ParenChecker {
+public:
+    char expr[100];
+    bool entered;
+
+    ParenChecker() {
+        entered = false;
+    }
+
+    void readExpr() {
+        cout << "Enter the stock-valuation expression (no spaces): ";
+        cin >> expr;
+        entered = true;
+    }
+
+    void check() {
+        if (!entered) {
+            cout << "Please enter the expression first.\n";
+            return;
+        }
+        char st[100];    // stack of opening brackets
+        int top = -1;
+        bool ok = true;
+
+        cout << "\nSymbol\tAction\t\tStack\n";
+        cout << "-------------------------------\n";
+        for (int i = 0; expr[i] != '\0' && ok; i++) {
+            char c = expr[i];
+            if (c == '(' || c == '[' || c == '{') {
+                st[++top] = c;
+                cout << c << "\tPush\t\t";
+            } else if (c == ')' || c == ']' || c == '}') {
+                if (top == -1) {
+                    cout << c << "\tNo match\t\n";
+                    ok = false;
+                    break;
+                }
+                char open = st[top];
+                if ((c == ')' && open == '(') || (c == ']' && open == '[') || (c == '}' && open == '{')) {
+                    top--;
+                    cout << c << "\tPop\t\t";
+                } else {
+                    cout << c << "\tMismatch\t\n";
+                    ok = false;
+                    break;
+                }
+            } else {
+                continue;    // ignore other characters
+            }
+            for (int k = 0; k <= top; k++)
+                cout << st[k] << " ";
+            cout << "\n";
+        }
+        if (top != -1)
+            ok = false;      // some opening brackets are left
+
+        cout << "\nExpression: " << expr << "\n";
+        if (ok)
+            cout << "Result: BALANCED\n";
+        else
+            cout << "Result: NOT BALANCED\n";
+    }
+};
+
+int main() {
+    ParenChecker obj;
+    int choice;
+    do {
+        cout << "\n===== Balanced Parentheses Check =====\n";
+        cout << "1. Enter the expression\n";
+        cout << "2. Check balanced parentheses\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readExpr(); break;
+            case 2: obj.check(); break;
+            case 3: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 3);
+    return 0;
+}
+
+// PDF 1 | Q34 | Inventory and Warehouse System | Part B Problem 4 (Stack)
+// Billing: infix to postfix, evaluation, stack contents shown.
+
+#include <iostream>
+using namespace std;
+
+// Variables are single CAPITAL letters (A-Z). Digits 0-9 are used as numbers.
+// Type the expression without spaces, e.g. (D*R)+C-W
+
+// priority of an operator
+int priority(char c) {
+    if (c == '*' || c == '/')
+        return 2;
+    if (c == '+' || c == '-')
+        return 1;
+    return 0;
+}
+
+bool isOperand(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+}
+
+class Expression {
+public:
+    char infix[50];
+    char postfix[50];
+    double value[26];    // value of each variable A-Z
+    bool known[26];      // has the value been entered?
+    bool converted;
+
+    Expression() {
+        converted = false;
+        infix[0] = '\0';
+        postfix[0] = '\0';
+        for (int i = 0; i < 26; i++)
+            known[i] = false;
+    }
+
+    void readInfix() {
+        cout << "Example: (U*Q)+S-D\n";
+        cout << "Enter infix expression (no spaces): ";
+        cin >> infix;
+        converted = false;
+    }
+
+    // print the operator stack
+    void showOps(char st[], int top) {
+        for (int i = 0; i <= top; i++)
+            cout << st[i] << " ";
+    }
+
+    // Infix to Postfix using a stack
+    void convert() {
+        if (infix[0] == '\0') {
+            cout << "Please enter the infix expression first.\n";
+            return;
+        }
+        char st[50];     // operator stack
+        int top = -1;
+        int j = 0;       // index in postfix
+        cout << "\nSymbol\tOperator Stack\tPostfix so far\n";
+        cout << "-------------------------------------------\n";
+        for (int i = 0; infix[i] != '\0'; i++) {
+            char c = infix[i];
+            if (isOperand(c)) {
+                postfix[j++] = c;                      // operand goes straight to output
+            } else if (c == '(') {
+                st[++top] = c;
+            } else if (c == ')') {
+                while (top >= 0 && st[top] != '(')
+                    postfix[j++] = st[top--];          // pop until '('
+                top--;                                 // remove '('
+            } else {                                   // operator
+                while (top >= 0 && priority(st[top]) >= priority(c))
+                    postfix[j++] = st[top--];
+                st[++top] = c;
+            }
+            postfix[j] = '\0';
+            cout << c << "\t";
+            showOps(st, top);
+            cout << "\t\t" << postfix << "\n";
+        }
+        while (top >= 0)                               // pop the remaining operators
+            postfix[j++] = st[top--];
+        postfix[j] = '\0';
+        cout << "(end)\t";
+        showOps(st, top);
+        cout << "\t\t" << postfix << "\n";
+        converted = true;
+        cout << "\nInfix   : " << infix << "\n";
+        cout << "Postfix : " << postfix << "\n";
+    }
+
+    // Evaluate the postfix expression using a stack
+    void evaluate() {
+        if (!converted) {
+            cout << "Convert the expression to postfix first.\n";
+            return;
+        }
+        double st[50];   // value stack
+        int top = -1;
+        cout << "\nSymbol\tValue Stack\n";
+        cout << "---------------------------\n";
+        for (int i = 0; postfix[i] != '\0'; i++) {
+            char c = postfix[i];
+            if (c >= 'A' && c <= 'Z') {
+                int k = c - 'A';
+                if (!known[k]) {
+                    cout << "Enter value of " << c << ": ";
+                    cin >> value[k];
+                    known[k] = true;
+                }
+                st[++top] = value[k];
+            } else if (c >= '0' && c <= '9') {
+                st[++top] = c - '0';
+            } else {
+                double b = st[top--];                  // second operand
+                double a = st[top--];                  // first operand
+                if (c == '+') st[++top] = a + b;
+                if (c == '-') st[++top] = a - b;
+                if (c == '*') st[++top] = a * b;
+                if (c == '/') {
+                    if (b == 0) {
+                        cout << "Division by zero!\n";
+                        return;
+                    }
+                    st[++top] = a / b;
+                }
+            }
+            cout << c << "\t";
+            for (int m = 0; m <= top; m++)
+                cout << st[m] << " ";
+            cout << "\n";
+        }
+        cout << "\nFinal Payable Amount = " << st[top] << "\n";
+    }
+
+    // d. Accept the values
+    void acceptValues() {
+        cout << "Enter UnitCost (U): ";
+        cin >> value['U' - 'A'];
+        known['U' - 'A'] = true;
+        cout << "Enter Quantity (Q): ";
+        cin >> value['Q' - 'A'];
+        known['Q' - 'A'] = true;
+        cout << "Enter Shipping (S): ";
+        cin >> value['S' - 'A'];
+        known['S' - 'A'] = true;
+        cout << "Enter Discount (D): ";
+        cin >> value['D' - 'A'];
+        known['D' - 'A'] = true;
+    }
+};
+
+int main() {
+    Expression obj;
+    int choice;
+    do {
+        cout << "\n===== Purchase Billing System =====\n";
+        cout << "Letters used: U=UnitCost, Q=Quantity, S=Shipping, D=Discount\n";
+        cout << "1. Read the formula in infix form\n";
+        cout << "2. Convert to postfix and display it (shows stack)\n";
+        cout << "3. Accept values for UnitCost, Quantity, Shipping, Discount\n";
+        cout << "4. Evaluate postfix (shows stack) and display Final Payable Amount\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readInfix(); break;
+            case 2: obj.convert(); break;
+            case 3: obj.acceptValues(); break;
+            case 4: obj.evaluate(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q35 | Inventory and Warehouse System | Part B Problem 5 (Queue)
+// Enqueue, dequeue, front and rear, display.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 10;
+
+class TokenQueue {
+public:
+    int q[MAX];
+    int front;   // index of the first element
+    int rear;    // index of the last element
+
+    TokenQueue() {
+        front = 0;
+        rear = -1;
+    }
+
+    // a. Enqueue
+    void enqueue() {
+        if (rear == MAX - 1) {
+            cout << "Queue is full.\n";
+            return;
+        }
+        int t;
+        cout << "Enter Order No: ";
+        cin >> t;
+        rear++;
+        q[rear] = t;
+        cout << "Added to the queue.\n";
+    }
+
+    // b. Dequeue
+    void dequeue() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "Dispatching order: " << q[front] << "\n";
+        front++;
+        if (front > rear) {      // queue became empty, reset it
+            front = 0;
+            rear = -1;
+        }
+    }
+
+    // c. Front and rear
+    void showFrontRear() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "Front Order No : " << q[front] << "\n";
+        cout << "Rear Order No  : " << q[rear] << "\n";
+    }
+
+    // d. Display the queue
+    void display() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "\nPosition\tOrder No\n";
+        cout << "-------------------------\n";
+        for (int i = front; i <= rear; i++) {
+            cout << i - front + 1 << "\t\t" << q[i];
+            if (i == front)
+                cout << "   <-- FRONT";
+            if (i == rear)
+                cout << "   <-- REAR";
+            cout << "\n";
+        }
+    }
+};
+
+int main() {
+    TokenQueue obj;
+    int choice;
+    do {
+        cout << "\n===== Goods Dispatch Queue =====\n";
+        cout << "1. Enqueue Order No\n";
+        cout << "2. Dequeue and display the order being dispatched\n";
+        cout << "3. Display front and rear Order Nos\n";
+        cout << "4. Display the complete queue\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enqueue(); break;
+            case 2: obj.dequeue(); break;
+            case 3: obj.showFrontRear(); break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q36 | Bank Management System | Part B Problem 1 (Stack)
+// Page navigation history using a stack.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 20;
+
+class History {
+public:
+    char url[MAX][50];   // stack of page names / URLs
+    int top;             // index of the top element
+
+    History() {
+        top = -1;
+    }
+
+    // a. Visit a new page (push)
+    void visit() {
+        if (top == MAX - 1) {
+            cout << "History is full.\n";
+            return;
+        }
+        top++;
+        cout << "Enter URL (no spaces): ";
+        cin >> url[top];
+        cout << "Visited: " << url[top] << "\n";
+    }
+
+    // b. Go back (pop)
+    void goBack() {
+        if (top <= 0) {
+            cout << "No previous page to go back to.\n";
+            return;
+        }
+        cout << "Leaving: " << url[top] << "\n";
+        top--;
+        cout << "Now on: " << url[top] << "\n";
+    }
+
+    // c. Display the current page (peek)
+    void current() {
+        if (top == -1) {
+            cout << "No page visited yet.\n";
+            return;
+        }
+        cout << "Current page: " << url[top] << "\n";
+    }
+
+    // d. Show the whole stack
+    void showStack() {
+        if (top == -1) {
+            cout << "Stack is empty.\n";
+            return;
+        }
+        cout << "\nPosition\tURL\n";
+        cout << "---------------------------\n";
+        for (int i = top; i >= 0; i--) {
+            cout << i + 1 << "\t\t" << url[i];
+            if (i == top)
+                cout << "   <-- TOP";
+            cout << "\n";
+        }
+    }
+};
+
+int main() {
+    History obj;
+    int choice;
+    do {
+        cout << "\n===== Internet Banking Portal History =====\n";
+        cout << "1. Visit a new page (push URL)\n";
+        cout << "2. Go back to the previous page (pop URL)\n";
+        cout << "3. Display the current page\n";
+        cout << "4. Show the entire browsing history stack\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.visit(); break;
+            case 2: obj.goBack(); break;
+            case 3: obj.current(); break;
+            case 4: obj.showStack(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q37 | Bank Management System | Part B Problem 2 (Stack)
+// Convert infix to postfix and evaluate it.
+
+#include <iostream>
+using namespace std;
+
+// Variables are single CAPITAL letters (A-Z). Digits 0-9 are used as numbers.
+// Type the expression without spaces, e.g. (D*R)+C-W
+
+// priority of an operator
+int priority(char c) {
+    if (c == '*' || c == '/')
+        return 2;
+    if (c == '+' || c == '-')
+        return 1;
+    return 0;
+}
+
+bool isOperand(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+}
+
+class Expression {
+public:
+    char infix[50];
+    char postfix[50];
+    double value[26];    // value of each variable A-Z
+    bool known[26];      // has the value been entered?
+    bool converted;
+
+    Expression() {
+        converted = false;
+        infix[0] = '\0';
+        postfix[0] = '\0';
+        for (int i = 0; i < 26; i++)
+            known[i] = false;
+    }
+
+    void readInfix() {
+        cout << "Example: (P*R*T)/H   (P=Principal, R=Rate, T=Time, H=100)\n";
+        cout << "Enter infix expression (no spaces): ";
+        cin >> infix;
+        converted = false;
+    }
+
+    // print the operator stack
+    void showOps(char st[], int top) {
+        for (int i = 0; i <= top; i++)
+            cout << st[i] << " ";
+    }
+
+    // Infix to Postfix using a stack
+    void convert() {
+        if (infix[0] == '\0') {
+            cout << "Please enter the infix expression first.\n";
+            return;
+        }
+        char st[50];     // operator stack
+        int top = -1;
+        int j = 0;       // index in postfix
+
+        for (int i = 0; infix[i] != '\0'; i++) {
+            char c = infix[i];
+            if (isOperand(c)) {
+                postfix[j++] = c;                      // operand goes straight to output
+            } else if (c == '(') {
+                st[++top] = c;
+            } else if (c == ')') {
+                while (top >= 0 && st[top] != '(')
+                    postfix[j++] = st[top--];          // pop until '('
+                top--;                                 // remove '('
+            } else {                                   // operator
+                while (top >= 0 && priority(st[top]) >= priority(c))
+                    postfix[j++] = st[top--];
+                st[++top] = c;
+            }
+            postfix[j] = '\0';
+
+        }
+        while (top >= 0)                               // pop the remaining operators
+            postfix[j++] = st[top--];
+        postfix[j] = '\0';
+
+        converted = true;
+        cout << "\nInfix   : " << infix << "\n";
+        cout << "Postfix : " << postfix << "\n";
+    }
+
+    // Evaluate the postfix expression using a stack
+    void evaluate() {
+        if (!converted) {
+            cout << "Convert the expression to postfix first.\n";
+            return;
+        }
+        double st[50];   // value stack
+        int top = -1;
+
+        for (int i = 0; postfix[i] != '\0'; i++) {
+            char c = postfix[i];
+            if (c >= 'A' && c <= 'Z') {
+                int k = c - 'A';
+                if (!known[k]) {
+                    cout << "Enter value of " << c << ": ";
+                    cin >> value[k];
+                    known[k] = true;
+                }
+                st[++top] = value[k];
+            } else if (c >= '0' && c <= '9') {
+                st[++top] = c - '0';
+            } else {
+                double b = st[top--];                  // second operand
+                double a = st[top--];                  // first operand
+                if (c == '+') st[++top] = a + b;
+                if (c == '-') st[++top] = a - b;
+                if (c == '*') st[++top] = a * b;
+                if (c == '/') {
+                    if (b == 0) {
+                        cout << "Division by zero!\n";
+                        return;
+                    }
+                    st[++top] = a / b;
+                }
+            }
+
+        }
+        cout << "\nResult = " << st[top] << "\n";
+    }
+};
+
+int main() {
+    Expression obj;
+    int choice;
+    do {
+        cout << "\n===== Interest Calculation =====\n";
+        cout << "1. Enter the infix expression\n";
+        cout << "2. Convert infix to postfix\n";
+        cout << "3. Evaluate the postfix expression\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readInfix(); break;
+            case 2: obj.convert(); break;
+            case 3:
+                for (int i = 0; i < 26; i++)
+                    obj.known[i] = false;      // ask for fresh values
+                obj.evaluate();
+                break;
+            case 4: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 4);
+    return 0;
+}
+
+// PDF 1 | Q38 | Bank Management System | Part B Problem 3 (Stack)
+// Check balanced parentheses using a stack.
+
+#include <iostream>
+using namespace std;
+
+class ParenChecker {
+public:
+    char expr[100];
+    bool entered;
+
+    ParenChecker() {
+        entered = false;
+    }
+
+    void readExpr() {
+        cout << "Enter the loan-eligibility expression (no spaces): ";
+        cin >> expr;
+        entered = true;
+    }
+
+    void check() {
+        if (!entered) {
+            cout << "Please enter the expression first.\n";
+            return;
+        }
+        char st[100];    // stack of opening brackets
+        int top = -1;
+        bool ok = true;
+
+        cout << "\nSymbol\tAction\t\tStack\n";
+        cout << "-------------------------------\n";
+        for (int i = 0; expr[i] != '\0' && ok; i++) {
+            char c = expr[i];
+            if (c == '(' || c == '[' || c == '{') {
+                st[++top] = c;
+                cout << c << "\tPush\t\t";
+            } else if (c == ')' || c == ']' || c == '}') {
+                if (top == -1) {
+                    cout << c << "\tNo match\t\n";
+                    ok = false;
+                    break;
+                }
+                char open = st[top];
+                if ((c == ')' && open == '(') || (c == ']' && open == '[') || (c == '}' && open == '{')) {
+                    top--;
+                    cout << c << "\tPop\t\t";
+                } else {
+                    cout << c << "\tMismatch\t\n";
+                    ok = false;
+                    break;
+                }
+            } else {
+                continue;    // ignore other characters
+            }
+            for (int k = 0; k <= top; k++)
+                cout << st[k] << " ";
+            cout << "\n";
+        }
+        if (top != -1)
+            ok = false;      // some opening brackets are left
+
+        cout << "\nExpression: " << expr << "\n";
+        if (ok)
+            cout << "Result: BALANCED\n";
+        else
+            cout << "Result: NOT BALANCED\n";
+    }
+};
+
+int main() {
+    ParenChecker obj;
+    int choice;
+    do {
+        cout << "\n===== Balanced Parentheses Check =====\n";
+        cout << "1. Enter the expression\n";
+        cout << "2. Check balanced parentheses\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readExpr(); break;
+            case 2: obj.check(); break;
+            case 3: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 3);
+    return 0;
+}
+
+// PDF 1 | Q39 | Bank Management System | Part B Problem 4 (Stack)
+// Billing: infix to postfix, evaluation, stack contents shown.
+
+#include <iostream>
+using namespace std;
+
+// Variables are single CAPITAL letters (A-Z). Digits 0-9 are used as numbers.
+// Type the expression without spaces, e.g. (D*R)+C-W
+
+// priority of an operator
+int priority(char c) {
+    if (c == '*' || c == '/')
+        return 2;
+    if (c == '+' || c == '-')
+        return 1;
+    return 0;
+}
+
+bool isOperand(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+}
+
+class Expression {
+public:
+    char infix[50];
+    char postfix[50];
+    double value[26];    // value of each variable A-Z
+    bool known[26];      // has the value been entered?
+    bool converted;
+
+    Expression() {
+        converted = false;
+        infix[0] = '\0';
+        postfix[0] = '\0';
+        for (int i = 0; i < 26; i++)
+            known[i] = false;
+    }
+
+    void readInfix() {
+        cout << "Example: P+I+F-R\n";
+        cout << "Enter infix expression (no spaces): ";
+        cin >> infix;
+        converted = false;
+    }
+
+    // print the operator stack
+    void showOps(char st[], int top) {
+        for (int i = 0; i <= top; i++)
+            cout << st[i] << " ";
+    }
+
+    // Infix to Postfix using a stack
+    void convert() {
+        if (infix[0] == '\0') {
+            cout << "Please enter the infix expression first.\n";
+            return;
+        }
+        char st[50];     // operator stack
+        int top = -1;
+        int j = 0;       // index in postfix
+        cout << "\nSymbol\tOperator Stack\tPostfix so far\n";
+        cout << "-------------------------------------------\n";
+        for (int i = 0; infix[i] != '\0'; i++) {
+            char c = infix[i];
+            if (isOperand(c)) {
+                postfix[j++] = c;                      // operand goes straight to output
+            } else if (c == '(') {
+                st[++top] = c;
+            } else if (c == ')') {
+                while (top >= 0 && st[top] != '(')
+                    postfix[j++] = st[top--];          // pop until '('
+                top--;                                 // remove '('
+            } else {                                   // operator
+                while (top >= 0 && priority(st[top]) >= priority(c))
+                    postfix[j++] = st[top--];
+                st[++top] = c;
+            }
+            postfix[j] = '\0';
+            cout << c << "\t";
+            showOps(st, top);
+            cout << "\t\t" << postfix << "\n";
+        }
+        while (top >= 0)                               // pop the remaining operators
+            postfix[j++] = st[top--];
+        postfix[j] = '\0';
+        cout << "(end)\t";
+        showOps(st, top);
+        cout << "\t\t" << postfix << "\n";
+        converted = true;
+        cout << "\nInfix   : " << infix << "\n";
+        cout << "Postfix : " << postfix << "\n";
+    }
+
+    // Evaluate the postfix expression using a stack
+    void evaluate() {
+        if (!converted) {
+            cout << "Convert the expression to postfix first.\n";
+            return;
+        }
+        double st[50];   // value stack
+        int top = -1;
+        cout << "\nSymbol\tValue Stack\n";
+        cout << "---------------------------\n";
+        for (int i = 0; postfix[i] != '\0'; i++) {
+            char c = postfix[i];
+            if (c >= 'A' && c <= 'Z') {
+                int k = c - 'A';
+                if (!known[k]) {
+                    cout << "Enter value of " << c << ": ";
+                    cin >> value[k];
+                    known[k] = true;
+                }
+                st[++top] = value[k];
+            } else if (c >= '0' && c <= '9') {
+                st[++top] = c - '0';
+            } else {
+                double b = st[top--];                  // second operand
+                double a = st[top--];                  // first operand
+                if (c == '+') st[++top] = a + b;
+                if (c == '-') st[++top] = a - b;
+                if (c == '*') st[++top] = a * b;
+                if (c == '/') {
+                    if (b == 0) {
+                        cout << "Division by zero!\n";
+                        return;
+                    }
+                    st[++top] = a / b;
+                }
+            }
+            cout << c << "\t";
+            for (int m = 0; m <= top; m++)
+                cout << st[m] << " ";
+            cout << "\n";
+        }
+        cout << "\nFinal Payable Loan Amount = " << st[top] << "\n";
+    }
+
+    // d. Accept the values
+    void acceptValues() {
+        cout << "Enter Principal (P): ";
+        cin >> value['P' - 'A'];
+        known['P' - 'A'] = true;
+        cout << "Enter Interest (I): ";
+        cin >> value['I' - 'A'];
+        known['I' - 'A'] = true;
+        cout << "Enter ProcessingFee (F): ";
+        cin >> value['F' - 'A'];
+        known['F' - 'A'] = true;
+        cout << "Enter Rebate (R): ";
+        cin >> value['R' - 'A'];
+        known['R' - 'A'] = true;
+    }
+};
+
+int main() {
+    Expression obj;
+    int choice;
+    do {
+        cout << "\n===== Loan Billing System =====\n";
+        cout << "Letters used: P=Principal, I=Interest, F=ProcessingFee, R=Rebate\n";
+        cout << "1. Read the formula in infix form\n";
+        cout << "2. Convert to postfix and display it (shows stack)\n";
+        cout << "3. Accept values for Principal, Interest, ProcessingFee, Rebate\n";
+        cout << "4. Evaluate postfix (shows stack) and display Final Payable Loan Amount\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.readInfix(); break;
+            case 2: obj.convert(); break;
+            case 3: obj.acceptValues(); break;
+            case 4: obj.evaluate(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
+
+// PDF 1 | Q40 | Bank Management System | Part B Problem 5 (Queue)
+// Enqueue, dequeue, front and rear, display.
+
+#include <iostream>
+using namespace std;
+
+const int MAX = 10;
+
+class TokenQueue {
+public:
+    int q[MAX];
+    int front;   // index of the first element
+    int rear;    // index of the last element
+
+    TokenQueue() {
+        front = 0;
+        rear = -1;
+    }
+
+    // a. Enqueue
+    void enqueue() {
+        if (rear == MAX - 1) {
+            cout << "Queue is full.\n";
+            return;
+        }
+        int t;
+        cout << "Enter Token No: ";
+        cin >> t;
+        rear++;
+        q[rear] = t;
+        cout << "Added to the queue.\n";
+    }
+
+    // b. Dequeue
+    void dequeue() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "Now serving token: " << q[front] << "\n";
+        front++;
+        if (front > rear) {      // queue became empty, reset it
+            front = 0;
+            rear = -1;
+        }
+    }
+
+    // c. Front and rear
+    void showFrontRear() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "Front Token No : " << q[front] << "\n";
+        cout << "Rear Token No  : " << q[rear] << "\n";
+    }
+
+    // d. Display the queue
+    void display() {
+        if (front > rear) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        cout << "\nPosition\tToken No\n";
+        cout << "-------------------------\n";
+        for (int i = front; i <= rear; i++) {
+            cout << i - front + 1 << "\t\t" << q[i];
+            if (i == front)
+                cout << "   <-- FRONT";
+            if (i == rear)
+                cout << "   <-- REAR";
+            cout << "\n";
+        }
+    }
+};
+
+int main() {
+    TokenQueue obj;
+    int choice;
+    do {
+        cout << "\n===== Teller Counter Queue =====\n";
+        cout << "1. Enqueue Token No\n";
+        cout << "2. Dequeue and display the customer being served\n";
+        cout << "3. Display front and rear Token Nos\n";
+        cout << "4. Display the complete queue\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: obj.enqueue(); break;
+            case 2: obj.dequeue(); break;
+            case 3: obj.showFrontRear(); break;
+            case 4: obj.display(); break;
+            case 5: cout << "Bye!\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 5);
+    return 0;
+}
